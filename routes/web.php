@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Http\Request;
 
+// --- Imports Controller Utama ---
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Admin\KategoriController;
@@ -17,6 +18,8 @@ use App\Http\Controllers\User\TransactionController;
 use App\Http\Controllers\User\PDFController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\Admin\NotificationCountController;
+use App\Http\Controllers\GeneralAboutController;
 
 // Default Landing Page
 Route::get('/', function () {
@@ -45,8 +48,12 @@ Route::get('/redirect', function () {
     return redirect('/login');
 });
 
+// ---------------- RUTE PUBLIK ----------------
+Route::get('/about-us', [GeneralAboutController::class, 'index'])->name('about');
+
+
 // ---------------- ADMIN ROUTES ----------------
-Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->group(function () {
+Route::prefix('admin')->middleware(['auth', 'role:admin,user'])->name('admin.')->group(function () {
     Route::get('/dashboard', function () {
         return view('admin.dashboard');
     })->name('dashboard');
@@ -58,27 +65,34 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->grou
     // Transaksi Admin
     Route::get('/transactions', [AdminTransactionController::class, 'index'])->name('transactions.index');
     Route::post('/transactions/{id}/konfirmasi', [AdminTransactionController::class, 'konfirmasi'])->name('transactions.konfirmasi');
+    Route::post('/transactions/{id}/complete', [AdminTransactionController::class, 'complete'])->name('transactions.complete');
 
     // Chat admin
     Route::get('/chat', [ChatController::class, 'index'])->name('chat');
     Route::post('/chat', [ChatController::class, 'store'])->name('chat.store');
+
+    // ROUTE NOTIFIKASI BARU (POLING AJAX)
+    Route::get('/notifications/count', [NotificationCountController::class, 'getUnreadCount'])
+        ->name('notifications.count');
 });
 
 // ---------------- USER ROUTES ----------------
 Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
     Route::get('/dashboard', [UserDashboardController::class, 'index'])->name('dashboard');
-    Route::get('/about', fn() => view('user.about'))->name('about');
-
+    Route::get('/about', [GeneralAboutController::class, 'index'])->name('about.user'); 
+    
     // Cart
     Route::get('/cart', [CartController::class, 'index'])->name('cart');
     Route::post('/cart/add/{id}', [CartController::class, 'add'])->name('cart.add');
     Route::delete('/cart/remove/{id}', [CartController::class, 'remove'])->name('cart.remove');
     Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');
 
-
     // Checkout
+    // 1. Tampilkan form (alamat, dll)
     Route::get('/checkout', [TransactionController::class, 'checkoutForm'])->name('checkout.form');
+    // 2. Proses checkout, kurangi stok, buat order
     Route::post('/checkout', [TransactionController::class, 'processCheckout'])->name('checkout.process');
+    
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions');
     Route::post('/transactions/selesai/{id}', [TransactionController::class, 'terimaPesanan'])->name('transactions.selesai');
     Route::get('/struk/{id}', [PDFController::class, 'cetakStruk'])->name('struk');
@@ -86,6 +100,9 @@ Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
     // Chat user
     Route::get('/chat', [ChatController::class, 'index'])->name('chat');
     Route::post('/chat', [ChatController::class, 'store'])->name('chat.store');
+    
+    // RUTE BARU: Untuk polling notifikasi chat di dashboard
+    Route::get('/chat/unread-count', [ChatController::class, 'getUnreadCount'])->name('chat.unread.count');
 
     Route::get('/pay/va', [PaymentController::class, 'createVA']);
 });

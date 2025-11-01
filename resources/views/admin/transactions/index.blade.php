@@ -2,7 +2,6 @@
 
 @section('content')
 <div class="transaction-dashboard">
-    <!-- Header Section -->
     <div class="dashboard-header">
         <div class="header-content">
             <div class="header-info">
@@ -29,7 +28,6 @@
         </div>
     </div>
 
-    <!-- Filters Section -->
     <div class="filters-section">
         <div class="filter-tabs">
             <button class="filter-tab active" data-status="all">All Transactions</button>
@@ -43,183 +41,254 @@
         </div>
     </div>
 
-    <!-- Transactions Grid -->
-    <div class="transactions-grid">
-        @forelse ($transactions as $trx)
-        <div class="transaction-card" data-status="{{ $trx->status }}">
-            <div class="card-header">
-                <div class="invoice-info">
-                    <h3 class="invoice-number">#{{ str_pad($trx->id, 6, '0', STR_PAD_LEFT) }}</h3>
-                    <div class="transaction-date">
-                        {{ \Carbon\Carbon::parse($trx->created_at)->format('d M Y, H:i') }}
-                    </div>
+    {{-- MODIFIKASI DIMULAI DI SINI: PAGINATION DAN DETAIL PRODUK RINGKAS --}}
+
+    @php
+    $groupedTransactions = $transactions->groupBy('user_id');
+    $trxPerPage = 5;
+    @endphp
+
+    <div class="user-transactions-container">
+        @forelse ($groupedTransactions as $userId => $userTransactions)
+        @php
+        $user = $userTransactions->first()->user;
+
+        // --- KODE PAGINATION INTERNAL ---
+        $trxPageName = 'user_' . $userId . '_page';
+        $currentTrxPage = \Illuminate\Pagination\Paginator::resolveCurrentPage($trxPageName);
+        $totalTrxCount = $userTransactions->count();
+
+        $paginatedTrx = new \Illuminate\Pagination\LengthAwarePaginator(
+            $userTransactions->slice(($currentTrxPage - 1) * $trxPerPage, $trxPerPage),
+            $totalTrxCount,
+            $trxPerPage,
+            $currentTrxPage,
+            ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath(), 'pageName' => $trxPageName]
+        );
+        @endphp
+        <div class="user-group-card" data-user-id="{{ $userId }}">
+            {{-- Bagian Kiri: Informasi User --}}
+            <div class="user-info-section">
+                <div class="user-avatar-lg">
+                    {{ strtoupper(substr($user->name, 0, 2)) }}
                 </div>
-                <div class="status-badge status-{{ $trx->status }}">
-                    @if($trx->status === 'pending')
-                    <span class="status-icon">⏳</span>
-                    @elseif($trx->status === 'dikirim')
-                    <span class="status-icon">🚚</span>
-                    @elseif($trx->status === 'selesai')
-                    <span class="status-icon">✅</span>
-                    @endif
-                    {{ strtoupper($trx->status) }}
-                </div>
+                <h2 class="user-group-name">{{ $user->name }}</h2>
+                <p class="user-group-email">{{ $user->email }}</p>
+                <p class="user-group-stats">Total Transaksi: **{{ $totalTrxCount }}**</p>
             </div>
 
-            <div class="card-body">
-                <div class="customer-info">
-                    <div class="customer-avatar">
-                        {{ strtoupper(substr($trx->user->name, 0, 1)) }}
-                    </div>
-                    <div class="customer-details">
-                        <h4 class="customer-name">{{ $trx->user->name }}</h4>
-                        <p class="customer-contact">📞 {{ $trx->telepon }}</p>
-                        <p class="customer-address">📍 {{ Str::limit($trx->alamat, 30) }}</p>
-                    </div>
-                </div>
-
-                <div class="payment-info">
-                    <div class="payment-method">
-                        <span class="payment-label">Payment Method:</span>
-                        <span class="payment-value">{{ ucfirst($trx->metode_pembayaran) }}</span>
-                    </div>
-                    <div class="total-amount">
-                        Rp {{ number_format($trx->total, 0, ',', '.') }}
-                    </div>
-                </div>
-
-                <div class="products-section">
-                    <h5 class="products-title">🛒 Items Ordered</h5>
-                    <div class="products-list">
-                        @foreach ($trx->items as $item)
-                        <div class="product-item">
-                            <div class="product-info">
-                                <span class="product-name">{{ $item->produk->nama }}</span>
-                                <span class="product-quantity">x{{ $item->jumlah }}</span>
-                            </div>
-                            <div class="product-price">
-                                Rp {{ number_format($item->harga * $item->jumlah, 0, ',', '.') }}
-                            </div>
+            {{-- Bagian Kanan: Daftar Transaksi User --}}
+            <div class="user-transactions-list">
+                @foreach ($paginatedTrx as $trx) 
+                <div class="transaction-card" data-status="{{ $trx->status }}" data-user-id="{{ $user->id }}">
+                    
+                    {{-- HEADER TRANSAKSI --}}
+                    <div class="card-header">
+                        <div class="invoice-number-compact">#{{ str_pad($trx->id, 6, '0', STR_PAD_LEFT) }}</div>
+                        <div class="transaction-date-compact">
+                            {{ \Carbon\Carbon::parse($trx->created_at)->format('d M Y H:i') }}
                         </div>
-                        @endforeach
+                        <div class="status-badge status-{{ $trx->status }}">
+                            <span class="status-icon">
+                                @if($trx->status === 'pending') ⏳
+                                @elseif($trx->status === 'dikirim') 🚚
+                                @elseif($trx->status === 'selesai') ✅
+                                @endif
+                            </span>
+                            {{ strtoupper($trx->status) }}
+                        </div>
+                    </div>
+
+                    {{-- DETAIL BARANG RINGKAS --}}
+                   <div class="card-body">
+                        <p class="product-title">
+                            @if (isset($trx->items) && $trx->items->count())
+                                📦 **{{ $trx->items->count() }}** jenis produk: 
+                                
+                                {{-- 💡 PERBAIKAN: Mengambil nama produk pertama dengan pengecekan aman --}}
+                                @php
+                                    // Ambil item pertama
+                                    $firstItem = $trx->items->first();
+                                    
+                                    // Coba properti yang umum (misal: name, product->name, product_name)
+                                    // Jika 'product_name' gagal, Anda harus menggunakan nama properti yang benar dari objek $firstItem.
+                                    $productName = $firstItem->product_name ?? $firstItem->name ?? ($firstItem->product->name ?? 'NAMA PRODUK TIDAK DITEMUKAN');
+                                @endphp
+
+                                <span class="item-name-summary">
+                                    {{ $productName }}
+                                    @if ($trx->items->count() > 1)
+                                        dan {{ $trx->items->count() - 1 }} lainnya...
+                                    @endif
+                                </span>
+                                
+                                {{-- ❗ DEBUG: Hapus ini setelah Anda menemukan nama properti yang benar ❗
+                                @if($productName === 'NAMA PRODUK TIDAK DITEMUKAN')
+                                    @dd($firstItem) 
+                                @endif
+                                --}}
+                            @else
+                                ❌ **Gagal Memuat Detail Produk.** (Pastikan relasi `items` dimuat di Controller: `Transaction::with(['user', 'items'])->get()`)
+                            @endif
+                        </p>
+                    </div>
+                    {{-- FOOTER & ACTIONS --}}
+                    <div class="card-footer">
+                        <div class="total-amount-compact">
+                            **Total: Rp {{ number_format($trx->total, 0, ',', '.') }}**
+                        </div>
+                        <div class="card-actions-compact">
+                            @if ($trx->status === 'pending')
+                            <form method="POST" action="{{ route('admin.transactions.konfirmasi', $trx->id) }}"
+                                class="confirm-form-compact">
+                                @csrf
+                                <button type="submit" class="action-btn btn-confirm-compact">
+                                    Confirm
+                                </button>
+                            </form>
+                            @endif
+                            @if ($trx->status === 'dikirim')
+                            <form method="POST" action="{{ route('admin.transactions.complete', $trx->id) }}" class="confirm-form-compact">
+                                @csrf
+                                <button type="submit" class="action-btn btn-complete-compact">
+                                    Complete
+                                </button>
+                            </form>
+                            @endif
+                        </div>
                     </div>
                 </div>
+                @endforeach
             </div>
-
-            <div class="card-actions">
-
-
-                @if ($trx->status === 'pending')
-                <form method="POST" action="{{ route('admin.transactions.konfirmasi', $trx->id) }}"
-                    class="confirm-form">
-                    @csrf
-                    <button type="submit" class="action-btn btn-confirm">
-                        Confirm Order
-                    </button>
-                </form>
-                @endif
-
-                @if ($trx->status === 'dikirim')
-                <button class="action-btn btn-complete" onclick="markAsComplete({{ $trx->id }})">
-                    <span class="btn-icon">📦</span>
-                    Mark Complete
-                </button>
-                @endif
+            
+            {{-- 🚩 TAUTAN PAGINASI UNTUK TRANSAKSI INTERNAL --}}
+            @if ($paginatedTrx->hasPages())
+            <div class="user-trx-pagination-links">
+                {{ $paginatedTrx->links() }}
             </div>
+            @endif
+
         </div>
         @empty
-        <div class="empty-state">
-            <div class="empty-icon">📭</div>
-            <h3>No Transactions Found</h3>
-            <p>There are no transactions to display at the moment.</p>
-        </div>
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <h3>No Transactions Found</h3>
+                <p>There are no transactions to display at the moment.</p>
+            </div>
         @endforelse
     </div>
+
+    {{-- MODIFIKASI BERAKHIR DI SINI --}}
+
 </div>
 
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-                // Filter functionality
-                const filterTabs = document.querySelectorAll('.filter-tab');
-                const transactionCards = document.querySelectorAll('.transaction-card');
+        // Filter functionality
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const userGroupCards = document.querySelectorAll('.user-group-card');
 
-                filterTabs.forEach(tab => {
-                    tab.addEventListener('click', function() {
-                        // Remove active class from all tabs
-                        filterTabs.forEach(t => t.classList.remove('active'));
-                        // Add active class to clicked tab
-                        this.classList.add('active');
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                filterTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
 
-                        const status = this.dataset.status;
+                const status = this.dataset.status;
 
-                        // Filter cards
-                        transactionCards.forEach(card => {
-                            if (status === 'all' || card.dataset.status === status) {
-                                card.style.display = 'block';
-                                card.style.animation = 'slideInUp 0.3s ease-out';
-                            } else {
-                                card.style.display = 'none';
-                            }
-                        });
-                    });
-                });
-
-                // Search functionality
-                const searchInput = document.querySelector('.search-input');
-                searchInput.addEventListener('input', function() {
-                    const searchTerm = this.value.toLowerCase();
-
-                    transactionCards.forEach(card => {
-                        const text = card.textContent.toLowerCase();
-                        if (text.includes(searchTerm)) {
-                            card.style.display = 'block';
+                userGroupCards.forEach(group => {
+                    group.style.display = 'grid'; 
+                
+                    group.querySelectorAll('.transaction-card').forEach(card => {
+                        if (status === 'all' || card.dataset.status === status) {
+                            card.style.display = 'flex';
                         } else {
                             card.style.display = 'none';
                         }
                     });
-                });
 
-                // Confirm form submission
-                const confirmForms = document.querySelectorAll('.confirm-form');
-                confirmForms.forEach(form => {
-                    form.addEventListener('submit', function(e) {
-                        e.preventDefault();
-                        const confirmBtn = this.querySelector('.btn-confirm');
-                        confirmBtn.innerHTML = '<span class="btn-icon">⏳</span>Processing...';
-                        confirmBtn.disabled = true;
-
-                        setTimeout(() => {
-                            this.submit();
-                        }, 1000);
-                    });
-                });
-
-                // Card hover effects
-                transactionCards.forEach(card => {
-                    card.addEventListener('mouseenter', function() {
-                        this.style.transform = 'translateY(-4px) scale(1.02)';
-                    });
-
-                    card.addEventListener('mouseleave', function() {
-                        this.style.transform = 'translateY(0) scale(1)';
-                    });
+                    const visibleCards = group.querySelectorAll('.transaction-card[style*="display: flex"]');
+                    if (status !== 'all' && visibleCards.length === 0) {
+                        group.style.display = 'none';
+                    } else {
+                        group.style.display = 'grid';
+                    }
                 });
             });
+        });
 
-            function markAsComplete(transactionId) {
-                if (confirm('Mark this transaction as completed?')) {
-                    // Add your completion logic here
-                    alert('Transaction marked as completed!');
+        // Search functionality
+        const searchInput = document.querySelector('.search-input');
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+
+            userGroupCards.forEach(group => {
+                let groupHasMatch = false;
+                
+                group.querySelectorAll('.transaction-card').forEach(card => {
+                    const text = card.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        card.style.display = 'flex';
+                        groupHasMatch = true;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                const userInfoSection = group.querySelector('.user-info-section');
+                const userInfoText = userInfoSection ? userInfoSection.textContent.toLowerCase() : '';
+                
+                if (userInfoText.includes(searchTerm)) {
+                    groupHasMatch = true;
+                    group.querySelectorAll('.transaction-card').forEach(card => {
+                        card.style.display = 'flex';
+                    });
                 }
-            }
+                
+                if (groupHasMatch) {
+                    group.style.display = 'grid';
+                } else {
+                    group.style.display = 'none';
+                }
+            });
+        });
+
+        // Memperbaiki Konfirmasi Form agar menampilkan loading state
+        const confirmFormsCompact = document.querySelectorAll('.confirm-form-compact');
+        confirmFormsCompact.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                
+                submitBtn.innerHTML = 'Processing... ⏳'; 
+                submitBtn.disabled = true;
+
+                setTimeout(() => {
+                    this.submit(); 
+                }, 500); 
+            });
+        });
+
+        // Card hover effects
+        const userGroupCards = document.querySelectorAll('.user-group-card');
+        userGroupCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-4px)';
+            });
+
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    });
 </script>
 @endpush
 
 <style>
     /* ================================
-   Transaction Dashboard Styles
-   ================================ */
+    Transaction Dashboard Styles
+    ================================ */
 
     .transaction-dashboard {
         background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
@@ -237,435 +306,159 @@
         margin-bottom: 2rem;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     }
+    .header-content { display: flex; justify-content: space-between; align-items: center; }
+    .page-title { font-size: 2.5rem; font-weight: 800; color: #fff; }
+    .page-subtitle { color: #64748b; }
+    .header-stats { display: flex; gap: 1rem; }
+    .stat-card { background: rgba(255, 255, 255, 0.8); border-radius: 12px; padding: 1rem 1.5rem; text-align: center; }
+    .stat-value { font-size: 1.5rem; font-weight: 700; color: #667eea; }
+    .stat-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 600; }
 
-    .header-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .page-title {
-        font-size: 2.5rem;
-        font-weight: 800;
-        color: #fff;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .title-icon {
-        font-size: 2rem;
-    }
-
-    .page-subtitle {
-        color: #64748b;
-        font-size: 1.1rem;
-        margin: 0.5rem 0 0 0;
-    }
-
-    .header-stats {
-        display: flex;
-        gap: 1rem;
-    }
-
-    .stat-card {
-        background: rgba(255, 255, 255, 0.8);
-        border-radius: 12px;
-        padding: 1rem 1.5rem;
-        text-align: center;
-        min-width: 80px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .stat-value {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #667eea;
-        margin-bottom: 0.25rem;
-    }
-
-    .stat-label {
-        font-size: 0.75rem;
-        color: #64748b;
-        text-transform: uppercase;
-        font-weight: 600;
-    }
 
     /* Filters Section */
-    .filters-section {
+    .filters-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; gap: 2rem; }
+    .filter-tabs { display: flex; gap: 0.5rem; }
+    .filter-tab.active, .filter-tab:hover { background: #2e2e2e; color: white; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(163, 163, 163, 0.3); }
+
+    /* ================================
+        MODIFIED User Group Styles
+        ================================ */
+
+    .user-transactions-container {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 2rem;
+        flex-direction: column;
         gap: 2rem;
     }
 
-    .filter-tabs {
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    .filter-tab {
-        background: rgba(255, 255, 255, 0.9);
-        border: none;
-        padding: 0.75rem 1.5rem;
-        border-radius: 25px;
-        font-weight: 600;
-        color: #64748b;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-    }
-
-    .filter-tab.active,
-    .filter-tab:hover {
-        background: #2e2e2e;
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(163, 163, 163, 0.3);
-    }
-
-    .search-box {
-        display: flex;
-        align-items: center;
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 25px;
-        padding: 0.5rem;
-        backdrop-filter: blur(10px);
-    }
-
-    .search-input {
-        border: none;
-        outline: none;
-        padding: 0.5rem 1rem;
-        background: transparent;
-        font-size: 0.9rem;
-        width: 250px;
-    }
-
-    .search-btn {
-        background: #667eea;
-        border: none;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        cursor: pointer;
-        color: white;
-        font-size: 1rem;
-    }
-
-    /* Transactions Grid */
-   .transactions-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-    .transaction-card {
+    .user-group-card {
+        display: grid;
+        grid-template-columns: 250px 1fr;
+        grid-template-rows: auto auto; 
         background: rgba(255, 255, 255, 0.95);
         border-radius: 16px;
-        padding: 0.35rem 0.75rem;
         overflow: hidden;
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.2);
-        animation: slideInUp 0.4s ease-out;
     }
-
-    .transaction-card:hover {
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
-    }
-
-    .card-header {
-        display: table-column;
-        justify-content: space-between;
-        align-items: center;
+    
+    .user-info-section {
+        grid-row: 1 / span 2; 
+        background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
         padding: 1.5rem;
-        background: linear-gradient(135deg, #f8fafc, #e2e8f0);
-        border-bottom: 1px solid #e2e8f0;
-    }
-
-    .invoice-number {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #1e293b;
-        margin: 0;
-    }
-
-    .transaction-date {
-        font-size: 0.875rem;
-        color: #64748b;
-        margin-top: 0.25rem;
-    }
-
-    .status-badge {
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
         display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 0.5rem;
+        text-align: center;
+        border-right: 1px solid #cbd5e1;
     }
 
-    .status-pending {
-        background: #fef3c7;
-        color: #92400e;
-    }
-
-    .status-dikirim {
-        background: #dbeafe;
-        color: #1d4ed8;
-    }
-
-    .status-selesai {
-        background: #d1fae5;
-        color: #065f46;
-    }
-
-    .card-body {
-        padding: 0.8rem;
-    }
-
-    .customer-info {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .customer-avatar {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 700;
-        font-size: 1.25rem;
-    }
-
-    .customer-name {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #1e293b;
-        margin: 0 0 0.25rem 0;
-    }
-
-    .customer-contact,
-    .customer-address {
-        font-size: 0.875rem;
-        color: #64748b;
-        margin: 0.125rem 0;
-    }
-
-    .payment-info {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
+    .user-transactions-list {
+        grid-column: 2; 
+        grid-row: 1;
         padding: 1rem;
-        background: #f8fafc;
-        border-radius: 8px;
-    }
-
-    .payment-label {
-        font-size: 0.875rem;
-        color: #64748b;
-    }
-
-    .payment-value {
-        font-weight: 600;
-        color: #1e293b;
-    }
-
-    .total-amount {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #059669;
-    }
-
-    .products-section {
-        margin-bottom: 1.5rem;
-    }
-
-    .products-title {
-        font-size: 1rem;
-        font-weight: 600;
-        color: #1e293b;
-        margin-bottom: 0.75rem;
-    }
-
-    .products-list {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
+        max-height: none; 
+        overflow-y: visible; 
+    }
+    
+    /* Style untuk Paginasi Internal */
+    .user-trx-pagination-links {
+        grid-column: 2; 
+        grid-row: 2;
+        padding: 0.5rem 1rem 1rem 1rem;
+        display: flex;
+        justify-content: flex-end; 
+        background: #ffffff;
+        border-top: 1px solid #e2e8f0; 
+    }
+    .user-trx-pagination-links .pagination { margin: 0; padding: 0; }
+    .user-trx-pagination-links .pagination .page-item { font-size: 0.75rem; }
+    
+    /* ================================
+    NEW TRANSACTION CARD STYLE
+    ================================ */
+    .transaction-card {
+        display: flex;
+        flex-direction: column;
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 5px; 
     }
 
-    .product-item {
+    .card-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0.5rem;
-        background: rgba(102, 126, 234, 0.05);
-        border-radius: 6px;
+        padding: 0.5rem 1rem; /* Padding lebih kecil */
+        border-bottom: 1px solid #e2e8f0;
+        background: #fdfdfd;
+        border-radius: 8px 8px 0 0;
+        font-size: 0.9rem;
     }
 
-    .product-info {
-        display: flex;
-        gap: 0.5rem;
+    /* DETAIL BARANG (Card Body Ringkas) */
+    .card-body {
+        padding: 0.5rem 1rem; /* Padding lebih kecil */
     }
-
-    .product-name {
-        font-weight: 500;
+    .product-title {
+        font-weight: 500; /* Lebih ringan */
         color: #1e293b;
+        margin: 0;
+        font-size: 0.85rem; /* Lebih kecil */
     }
-
-    .product-quantity {
-        color: #64748b;
-        font-size: 0.875rem;
-    }
-
-    .product-price {
+    .item-name-summary {
         font-weight: 600;
+        color: #3b82f6;
+    }
+
+    /* FOOTER & ACTIONS */
+    .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 1rem; /* Padding lebih kecil */
+        background: #f9fafb;
+        border-top: 1px solid #e2e8f0;
+        border-radius: 0 0 8px 8px;
+    }
+
+    .total-amount-compact {
+        font-size: 1rem; /* Lebih ringkas */
+        font-weight: 700;
         color: #059669;
     }
+    
+    /* STATUS BADGES */
+    .status-badge { padding: 0.2rem 0.5rem; font-size: 0.6rem; }
+    
+    .status-pending { background: #fef3c7; color: #d97706; }
+    .status-dikirim { background: #dbeafe; color: #2563eb; }
+    .status-selesai { background: #d1fae5; color: #059669; }
 
-    .card-actions {
-        padding: 1rem 1.5rem;
-        background: #f8fafc;
-        display: flex;
-        gap: 0.75rem;
-        border-top: 1px solid #e2e8f0;
+    /* ACTIONS */
+    .btn-confirm-compact, .btn-complete-compact {
+        font-size: 0.7rem; /* Lebih kecil */
+        padding: 0.4rem 0.6rem;
     }
 
-    .action-btn {
-        width: 100%;
-        height: 50px;
-        border: none;
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.9);
-        color: #374151;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        transition: all 0.3s ease;
-        text-decoration: none;
-    }
+    /* Remove old compact style */
+    .transaction-card-compact { display: none !important; }
 
-    .action-btn:hover {
-        background: white;
-        transform: scale(1.1);
-    }
-
-    .btn-confirm {
-        background: #10b981;
-        color: white;
-    }
-
-    .btn-confirm:hover {
-        background: #059669;
-        transform: translateY(-2px);
-    }
-
-    .btn-complete {
-        background: #3b82f6;
-        color: white;
-    }
-
-    .btn-complete:hover {
-        background: #2563eb;
-        transform: translateY(-2px);
-    }
-
-    .confirm-form {
-        flex: 1;
-    }
-
-    /* Empty State */
-    .empty-state {
-        grid-column: 1 / -1;
-        text-align: center;
-        padding: 4rem 2rem;
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 16px;
-        backdrop-filter: blur(10px);
-    }
-
-    .empty-icon {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-    }
-
-    .empty-state h3 {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: #1e293b;
-        margin-bottom: 0.5rem;
-    }
-
-    .empty-state p {
-        color: #64748b;
-        font-size: 1rem;
-    }
-
-    /* Animations */
-    @keyframes slideInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-        .transaction-dashboard {
-            padding: 1rem;
-        }
-
-        .header-content {
-            flex-direction: column;
-            gap: 1.5rem;
-            text-align: center;
-        }
-
-        .page-title {
-            font-size: 2rem;
-        }
-
-        .filters-section {
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .filter-tabs {
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .transactions-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .search-input {
-            width: 200px;
-        }
-
-        .card-actions {
-            flex-direction: column;
-        }
+    /* Responsive Overrides */
+    @media (max-width: 992px) {
+        .user-group-card { grid-template-columns: 1fr; grid-template-rows: auto auto auto; }
+        .user-info-section { grid-row: 1; border-right: none; border-bottom: 1px solid #cbd5e1; }
+        .user-transactions-list { grid-column: 1; grid-row: 2; max-height: none; overflow-y: visible; }
+        .user-trx-pagination-links { grid-column: 1; grid-row: 3; justify-content: center; border-radius: 0 0 16px 16px; border-top: 1px solid #e2e8f0; }
+        .card-header, .card-footer { flex-wrap: wrap; }
+        .total-amount-compact { order: 2; width: 100%; text-align: right; margin-top: 0.5rem; }
     }
 </style>
 @endsection

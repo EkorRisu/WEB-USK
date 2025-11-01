@@ -18,7 +18,8 @@ class AdminTransactionController extends Controller
             abort(403, 'Akses hanya untuk admin.');
         }
 
-        $transactions = Transaction::with(['user', 'items.produk'])->latest()->get();
+        $transactions = Transaction::with('user')->get();
+
         return view('admin.transactions.index', compact('transactions'));
     }
 
