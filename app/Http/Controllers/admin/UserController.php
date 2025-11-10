@@ -17,5 +17,7 @@ class UserController extends Controller
         $total = User::where('role', '!=', 'admin')->count(); // hitung total non-admin
 
         return view('admin.users.index', compact('users', 'total'));
+
+        
     }
 }

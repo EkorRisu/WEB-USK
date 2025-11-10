@@ -6,7 +6,7 @@
 
         <p class="mb-4 text-gray-600">Total akun: {{ $total }}</p>
 
-        <table class="w-full bg-white rounded shadow">
+        <table class="w-full bg-white rounded shadow text-black">
             <thead class="bg-gray-100">
                 <tr>
                     <th class="py-2 px-4 text-left">#</th>

@@ -4,7 +4,7 @@
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<div class="page-container">
+<div class="page-container" id="pageContainer">
     <!-- Header Section -->
     <div class="page-header">
         <div class="header-content">
@@ -57,6 +57,7 @@
                 <option value="{{ $category }}">{{ $category }}</option>
                 @endforeach
             </select>
+            
             <select id="sortBy" class="filter-select">
                 <option value="name">Sort by Name</option>
                 <option value="price">Sort by Price</option>
@@ -190,6 +191,24 @@
 
             // Search and Filter Functionality
             document.addEventListener('DOMContentLoaded', function() {
+                const pageContainer = document.getElementById('pageContainer');
+                
+                // Sync with navbar theme
+                const syncTheme = () => {
+                    const isDark = document.documentElement.classList.contains('dark');
+                    pageContainer.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                };
+
+                // Initial sync
+                syncTheme();
+
+                // Listen for theme changes from navbar
+                const observer = new MutationObserver(syncTheme);
+                observer.observe(document.documentElement, { 
+                    attributes: true, 
+                    attributeFilter: ['class'] 
+                });
+
                 const searchInput = document.getElementById('searchInput');
                 const categoryFilter = document.getElementById('categoryFilter');
                 const sortBy = document.getElementById('sortBy');
@@ -237,31 +256,32 @@
                     }
                 }
 
-                function sortProducts() {
-                    const sortValue = sortBy.value;
-                    const cardsArray = Array.from(productCards);
+                // FITUR SORTING - TIDAK ADA DI REQUIREMENTS
+                // function sortProducts() {
+                //     const sortValue = sortBy.value;
+                //     const cardsArray = Array.from(productCards);
 
-                    cardsArray.sort((a, b) => {
-                        switch(sortValue) {
-                            case 'name':
-                                return a.dataset.name.localeCompare(b.dataset.name);
-                            case 'price':
-                                return parseInt(a.dataset.price) - parseInt(b.dataset.price);
-                            case 'category':
-                                return a.dataset.category.localeCompare(b.dataset.category);
-                            default:
-                                return 0;
-                        }
-                    });
+                //     cardsArray.sort((a, b) => {
+                //         switch(sortValue) {
+                //             case 'name':
+                //                 return a.dataset.name.localeCompare(b.dataset.name);
+                //             case 'price':
+                //                 return parseInt(a.dataset.price) - parseInt(b.dataset.price);
+                //             case 'category':
+                //                 return a.dataset.category.localeCompare(b.dataset.category);
+                //             default:
+                //                 return 0;
+                //         }
+                //     });
 
-                    cardsArray.forEach(card => {
-                        productsContainer.appendChild(card);
-                    });
-                }
+                //     cardsArray.forEach(card => {
+                //         productsContainer.appendChild(card);
+                //     });
+                // }
 
                 searchInput.addEventListener('input', filterAndSearch);
                 categoryFilter.addEventListener('change', filterAndSearch);
-                sortBy.addEventListener('change', sortProducts);
+                // sortBy.addEventListener('change', sortProducts);
 
                 // Animate cards on load
                 productCards.forEach((card, index) => {
@@ -271,21 +291,56 @@
     </script>
 
     <style>
+        /* Root Variables for Theming */
+        :root {
+            --bg-gradient-start: #18181b;
+            --bg-gradient-end: #27272a;
+            --card-bg: rgba(30, 30, 40, 0.85);
+            --header-bg: #1e1e28d9;
+            --text-primary: #f3f4f6;
+            --text-secondary: #fff;
+            --text-hint: #9ca3af;
+            --border-color: #e5e7eb;
+            --input-bg: white;
+            --breadcrumb-bg: rgba(255, 255, 255, 0.1);
+            --breadcrumb-text: rgba(255, 255, 255, 0.8);
+            --stat-bg: rgba(40, 40, 50, 0.8);
+            --stat-text: #ffff;
+        }
+
+        .page-container[data-theme="light"] {
+            --bg-gradient-start: #f0f4ff;
+            --bg-gradient-end: #e0e7ff;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --header-bg: rgba(255, 255, 255, 0.95);
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-hint: #64748b;
+            --border-color: #cbd5e1;
+            --input-bg: #ffffff;
+            --breadcrumb-bg: rgba(99, 102, 241, 0.1);
+            --breadcrumb-text: #475569;
+            --stat-bg: rgba(99, 102, 241, 0.1);
+            --stat-text: #1e293b;
+        }
+
         .page-container {
-            background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             min-height: 100vh;
             padding: 2rem;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            transition: background 0.5s ease;
         }
 
         /* Header Section */
         .page-header {
-            background: #1e1e28d9;
+            background: var(--header-bg);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 2rem;
             margin-bottom: 2rem;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: background 0.3s ease;
         }
 
         .header-content {
@@ -297,11 +352,18 @@
         .page-title {
             font-size: 2.5rem;
             font-weight: 800;
-            color: #fff;
+            color: var(--text-primary);
             margin: 0;
             display: flex;
             align-items: center;
             gap: 1rem;
+            transition: color 0.3s ease;
+        }
+
+        .page-container[data-theme="light"] .page-title {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .title-icon {
@@ -320,23 +382,26 @@
         }
 
         .stat-card {
-            background: rgba(40, 40, 50, 0.8);
+            background: var(--stat-bg);
             padding: 1rem 1.5rem;
             border-radius: 12px;
             text-align: center;
             min-width: 100px;
+            transition: background 0.3s ease;
         }
 
         .stat-number {
             font-size: 2rem;
             font-weight: 800;
-            color: #ffff
+            color: var(--stat-text);
+            transition: color 0.3s ease;
         }
 
         .stat-label {
             font-size: 0.875rem;
-            color: #ffff;
+            color: var(--stat-text);
             font-weight: 500;
+            transition: color 0.3s ease;
         }
 
         /* Action Bar */
@@ -355,9 +420,9 @@
         }
 
         .breadcrumb-item {
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--breadcrumb-text);
             padding: 0.5rem 1rem;
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--breadcrumb-bg);
             border-radius: 20px;
             text-decoration: none;
             display: flex;
@@ -372,9 +437,19 @@
             text-decoration: none;
         }
 
+        .page-container[data-theme="light"] .breadcrumb-item:hover {
+            background: rgba(99, 102, 241, 0.2);
+            color: #4c1d95;
+        }
+
         .breadcrumb-item.active {
             background: rgba(255, 255, 255, 0.9);
             color: #374151;
+        }
+
+        .page-container[data-theme="light"] .breadcrumb-item.active {
+            background: #667eea;
+            color: white;
         }
 
         .breadcrumb-separator {
@@ -388,8 +463,7 @@
 
         /* Filter Section */
         .filter-section {
-            background: rgba(30, 30, 40, 0.85);
-            ;
+            background: var(--card-bg);
             backdrop-filter: blur(10px);
             border-radius: 16px;
             padding: 1.5rem;
@@ -398,6 +472,7 @@
             justify-content: space-between;
             align-items: center;
             gap: 2rem;
+            transition: background 0.3s ease;
         }
 
         .search-wrapper {
@@ -412,10 +487,12 @@
         .search-input {
             width: 100%;
             padding: 0.75rem 3rem 0.75rem 1rem;
-            border: 2px solid #e5e7eb;
+            border: 2px solid var(--border-color);
             border-radius: 12px;
             font-size: 1rem;
             transition: all 0.3s ease;
+            background: var(--input-bg);
+            color: var(--text-primary);
         }
 
         .search-input:focus {
@@ -439,9 +516,10 @@
 
         .filter-select {
             padding: 0.75rem 1rem;
-            border: 2px solid #e5e7eb;
+            border: 2px solid var(--border-color);
             border-radius: 12px;
-            background: white;
+            background: var(--input-bg);
+            color: var(--text-primary);
             font-size: 0.9rem;
             min-width: 150px;
             transition: all 0.3s ease;
@@ -462,7 +540,7 @@
         }
 
         .product-card {
-            background: rgba(30, 30, 40, 0.85);
+            background: var(--card-bg);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             overflow: hidden;
@@ -574,18 +652,20 @@
         .product-name {
             font-size: 1.25rem;
             font-weight: 700;
-            color: #f3f4f6;
+            color: var(--text-primary);
             margin: 0 0 0.75rem 0;
             line-height: 1.3;
+            transition: color 0.3s ease;
         }
 
         .product-category {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            color: #fff;
+            color: var(--text-secondary);
             font-size: 0.875rem;
             margin-bottom: 1rem;
+            transition: color 0.3s ease;
         }
 
         .category-icon {

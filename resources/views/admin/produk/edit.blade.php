@@ -1,8 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="form-container">
-    <!-- Header Section -->
+<div class="form-container" id="formContainer">
     <div class="form-header">
         <div class="header-content">
             <div class="header-info">
@@ -20,7 +19,6 @@
         </div>
     </div>
 
-    <!-- Form Section -->
     <div class="form-wrapper">
         <div class="form-card">
             <div class="form-progress">
@@ -35,7 +33,6 @@
                 @csrf
                 @method('PUT')
 
-                <!-- Product Name Field -->
                 <div class="form-group">
                     <label for="nama" class="form-label">
                         <span class="label-icon">📦</span>
@@ -56,7 +53,6 @@
                     <div class="field-hint">Choose a clear, descriptive name for your product</div>
                 </div>
 
-                <!-- Category Field -->
                 <div class="form-group">
                     <label for="kategori_id" class="form-label">
                         <span class="label-icon">🏷️</span>
@@ -84,7 +80,6 @@
                     <div class="field-hint">Select the most appropriate category for this product</div>
                 </div>
 
-                <!-- Price Field -->
                 <div class="form-group">
                     <label for="harga" class="form-label">
                         <span class="label-icon">💰</span>
@@ -106,7 +101,6 @@
                     <div class="field-hint">Set the selling price for this product</div>
                 </div>
 
-                <!-- Stock Field -->
                 <div class="form-group">
                     <label for="stok" class="form-label">
                         <span class="label-icon">📦</span>
@@ -127,9 +121,29 @@
                     @enderror
                     <div class="field-hint">Enter the available quantity of this product</div>
                 </div>
+                
+                {{-- ⭐ PERBAIKAN DAN PENAMBAHAN FIELD DESKRIPSI ⭐ --}}
+                <div class="form-group">
+                    <label for="deskripsi" class="form-label">
+                        <span class="label-icon">📖</span>
+                        Product Description
+                    </label>
+                    <textarea name="deskripsi" id="deskripsi" class="form-textarea @error('deskripsi') error @enderror"
+                        rows="6"
+                        placeholder="Enter a detailed description of the product, including features, benefits, and specifications...">{{ old('deskripsi', $produk->deskripsi) }}</textarea>
+
+                    {{-- PASTIKAN TAG ERROR BERADA DI LUAR TEXTAREA --}}
+                    @error('deskripsi')
+                    <div class="error-message">
+                        <span class="error-icon">⚠️</span>
+                        {{ $message }}
+                    </div>
+                    @enderror
+                    <div class="field-hint">Provide an engaging and comprehensive description for your customers.</div>
+                </div>
+                {{-- AKHIR FIELD DESKRIPSI --}}
 
 
-                <!-- Current Image Display -->
                 @if($produk->foto)
                 <div class="form-group">
                     <label class="form-label">
@@ -146,7 +160,6 @@
                 </div>
                 @endif
 
-                <!-- Image Upload Field -->
                 <div class="form-group">
                     <label for="foto" class="form-label">
                         <span class="label-icon">📷</span>
@@ -163,8 +176,8 @@
                                     JPG, PNG, GIF up to 5MB
                                 </div>
                             </div>
-                            <input type="file" name="foto" id="foto" class="file-input @error('foto') error @enderror"
-                                accept="image/*">
+                            <input type="file" name="foto" id="foto"
+                                class="file-input @error('foto') error @enderror" accept="image/*">
                         </div>
 
                         <div class="image-preview" id="imagePreview" style="display: none;">
@@ -187,10 +200,10 @@
                         {{ $message }}
                     </div>
                     @enderror
-                    <div class="field-hint">Leave empty to keep current image, or upload a new one to replace it</div>
+                    <div class="field-hint">Leave empty to keep current image, or upload a new one to replace it
+                    </div>
                 </div>
 
-                <!-- Form Actions -->
                 <div class="form-actions">
                     <a href="{{ route('admin.produk.index') }}" class="btn btn-secondary">
                         <span class="btn-icon">←</span>
@@ -207,7 +220,6 @@
             </form>
         </div>
 
-        <!-- Help Card -->
         <div class="help-card">
             <h4>💡 Tips for Editing Products</h4>
             <ul>
@@ -224,165 +236,251 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-                const form = document.getElementById('productForm');
-                const nameInput = document.getElementById('nama');
-                const categorySelect = document.getElementById('kategori_id');
-                const priceInput = document.getElementById('harga');
-                const fileInput = document.getElementById('foto');
-                const dropZone = document.getElementById('dropZone');
-                const imagePreview = document.getElementById('imagePreview');
-                const previewImg = document.getElementById('previewImg');
-                const fileName = document.getElementById('fileName');
-                const fileSize = document.getElementById('fileSize');
-                const removeImageBtn = document.getElementById('removeImage');
-                const progressFill = document.querySelector('.progress-fill');
-                const submitBtn = document.getElementById('submitBtn');
+        const form = document.getElementById('productForm');
+        const nameInput = document.getElementById('nama');
+        const categorySelect = document.getElementById('kategori_id');
+        const priceInput = document.getElementById('harga');
+        const descriptionInput = document.getElementById('deskripsi'); // Ambil element deskripsi
+        const fileInput = document.getElementById('foto');
+        const dropZone = document.getElementById('dropZone');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewImg = document.getElementById('previewImg');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const removeImageBtn = document.getElementById('removeImage');
+        const progressFill = document.querySelector('.progress-fill');
+        const submitBtn = document.getElementById('submitBtn');
+        const formContainer = document.getElementById('formContainer');
 
-                // Progress tracking - start at 100% since we're editing
-                function updateProgress() {
-                    let progress = 100; // Always 100% for edit form since fields are populated
-                    progressFill.style.width = progress + '%';
-                    progressFill.style.background = 'linear-gradient(90deg, #10b981, #059669)';
+        // Sync with navbar theme
+        const syncTheme = () => {
+            const isDark = document.documentElement.classList.contains('dark');
+            formContainer.setAttribute('data-theme', isDark ? 'dark' : 'light');
+        };
+
+        // Initial sync
+        syncTheme();
+
+        // Listen for theme changes from navbar
+        const observer = new MutationObserver(syncTheme);
+        observer.observe(document.documentElement, { 
+            attributes: true, 
+            attributeFilter: ['class'] 
+        });
+
+        // Progress tracking - start at 100% since we're editing
+        function updateProgress() {
+            let progress = 100; // Always 100% for edit form since fields are populated
+            progressFill.style.width = progress + '%';
+            progressFill.style.background = 'linear-gradient(90deg, #10b981, #059669)';
+        }
+
+        // Price formatting
+        priceInput.addEventListener('input', function() {
+            updateProgress();
+        });
+
+        // Format price display
+        priceInput.addEventListener('blur', function() {
+            if (this.value) {
+                const value = parseFloat(this.value);
+                if (!isNaN(value)) {
+                    this.value = Math.round(value);
                 }
+            }
+        });
 
-                // Price formatting
-                priceInput.addEventListener('input', function() {
-                    updateProgress();
-                });
+        nameInput.addEventListener('input', updateProgress);
+        categorySelect.addEventListener('change', updateProgress);
+        descriptionInput.addEventListener('input', updateProgress); // Tambahkan listener untuk deskripsi
 
-                // Format price display
-                priceInput.addEventListener('blur', function() {
-                    if (this.value) {
-                        const value = parseFloat(this.value);
-                        if (!isNaN(value)) {
-                            this.value = Math.round(value);
-                        }
-                    }
-                });
+        // File upload handling
+        dropZone.addEventListener('click', () => fileInput.click());
 
-                nameInput.addEventListener('input', updateProgress);
-                categorySelect.addEventListener('change', updateProgress);
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('drag-over');
+        });
 
-                // File upload handling
-                dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+        });
 
-                dropZone.addEventListener('dragover', function(e) {
-                    e.preventDefault();
-                    this.classList.add('drag-over');
-                });
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                handleFileSelect(files[0]);
+            }
+        });
 
-                dropZone.addEventListener('dragleave', function(e) {
-                    e.preventDefault();
-                    this.classList.remove('drag-over');
-                });
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
 
-                dropZone.addEventListener('drop', function(e) {
-                    e.preventDefault();
-                    this.classList.remove('drag-over');
-                    const files = e.dataTransfer.files;
-                    if (files.length > 0) {
-                        fileInput.files = files;
-                        handleFileSelect(files[0]);
-                    }
-                });
+        function handleFileSelect(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file');
+                return;
+            }
 
-                fileInput.addEventListener('change', function(e) {
-                    if (e.target.files.length > 0) {
-                        handleFileSelect(e.target.files[0]);
-                    }
-                });
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB');
+                return;
+            }
 
-                function handleFileSelect(file) {
-                    if (!file.type.startsWith('image/')) {
-                        alert('Please select an image file');
-                        return;
-                    }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                fileName.textContent = file.name;
+                fileSize.textContent = formatFileSize(file.size);
 
-                    if (file.size > 5 * 1024 * 1024) {
-                        alert('File size must be less than 5MB');
-                        return;
-                    }
-
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        previewImg.src = e.target.result;
-                        fileName.textContent = file.name;
-                        fileSize.textContent = formatFileSize(file.size);
-
-                        dropZone.style.display = 'none';
-                        imagePreview.style.display = 'block';
-                        updateProgress();
-                    };
-                    reader.readAsDataURL(file);
-                }
-
-                function formatFileSize(bytes) {
-                    if (bytes === 0) return '0 Bytes';
-                    const k = 1024;
-                    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-                    const i = Math.floor(Math.log(bytes) / Math.log(k));
-                    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-                }
-
-                removeImageBtn.addEventListener('click', function() {
-                    fileInput.value = '';
-                    dropZone.style.display = 'block';
-                    imagePreview.style.display = 'none';
-                    updateProgress();
-                });
-
-                // Form submission
-                form.addEventListener('submit', function(e) {
-                    const btnText = submitBtn.querySelector('.btn-text');
-                    const btnLoader = submitBtn.querySelector('.btn-loader');
-
-                    btnText.style.display = 'none';
-                    btnLoader.style.display = 'inline-block';
-                    submitBtn.disabled = true;
-                });
-
-                // Input animations
-                const inputs = document.querySelectorAll('.form-input, .form-select');
-                inputs.forEach(input => {
-                    input.addEventListener('focus', function() {
-                        this.parentElement.classList.add('focused');
-                    });
-
-                    input.addEventListener('blur', function() {
-                        if (!this.value) {
-                            this.parentElement.classList.remove('focused');
-                        }
-                    });
-
-                    // Check if input has value on load
-                    if (input.value) {
-                        input.parentElement.classList.add('focused');
-                    }
-                });
-
-                // Initialize progress
+                dropZone.style.display = 'none';
+                imagePreview.style.display = 'block';
                 updateProgress();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        removeImageBtn.addEventListener('click', function() {
+            fileInput.value = '';
+            dropZone.style.display = 'block';
+            imagePreview.style.display = 'none';
+            updateProgress();
+        });
+
+        // Form submission
+        form.addEventListener('submit', function(e) {
+            const btnText = submitBtn.querySelector('.btn-text');
+            const btnLoader = submitBtn.querySelector('.btn-loader');
+
+            btnText.style.display = 'none';
+            btnLoader.style.display = 'inline-block';
+            submitBtn.disabled = true;
+        });
+
+        // Input animations
+        const inputs = document.querySelectorAll('.form-input, .form-select, .form-textarea'); // Termasuk textarea
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                // Check if parent has input-wrapper class, as form-textarea doesn't
+                let targetElement = this.classList.contains('form-textarea') ? this : this.parentElement;
+                targetElement.classList.add('focused');
             });
+
+            input.addEventListener('blur', function() {
+                let targetElement = this.classList.contains('form-textarea') ? this : this.parentElement;
+                if (!this.value) {
+                    targetElement.classList.remove('focused');
+                }
+            });
+
+            // Check if input has value on load
+            let targetElement = input.classList.contains('form-textarea') ? input : input.parentElement;
+            if (input.value) {
+                targetElement.classList.add('focused');
+            }
+        });
+
+        // Initialize progress
+        updateProgress();
+    });
 </script>
 @endpush
 
 <style>
+    {{-- CSS tidak diubah, karena sudah ada style untuk .form-textarea --}}
+
+    /* Root Variables for Theming */
+    :root {
+        --bg-gradient-start: #18181b;
+        --bg-gradient-end: #27272a;
+        --card-bg: rgba(255, 255, 255, 0.95);
+        --header-bg: rgba(71, 71, 71, 0.95);
+        --text-primary: #374151;
+        --text-secondary: #6b7280;
+        --text-hint: #9ca3af;
+        --border-color: #e5e7eb;
+        --input-bg: white;
+        --breadcrumb-bg: rgba(255, 255, 255, 0.7);
+        --breadcrumb-text: #64748b;
+        --subtitle-text: #c7c7c8;
+    }
+
+    .form-container[data-theme="light"] {
+        --bg-gradient-start: #f0f4ff;
+        --bg-gradient-end: #e0e7ff;
+        --card-bg: rgba(255, 255, 255, 0.98);
+        --header-bg: rgba(255, 255, 255, 0.95);
+        --text-primary: #1e293b;
+        --text-secondary: #475569;
+        --text-hint: #64748b;
+        --border-color: #cbd5e1;
+        --input-bg: #ffffff;
+        --breadcrumb-bg: rgba(99, 102, 241, 0.1);
+        --breadcrumb-text: #475569;
+        --subtitle-text: #64748b;
+    }
+
+    /* Pastikan ada style untuk form-textarea agar terlihat bagus */
+    .form-textarea {
+        width: 100%;
+        padding: 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: var(--input-bg);
+        color: var(--text-primary);
+        resize: vertical;
+    }
+    
+    .form-textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-textarea.error {
+        border-color: #ef4444;
+    }
+
+    .form-textarea.focused {
+        border-color: #667eea;
+    }
+
+
     .form-container {
-        background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+        background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
         min-height: 100vh;
         padding: 2rem;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        transition: background 0.5s ease;
     }
 
     /* Header Section */
     .form-header {
-            background: rgba(71, 71, 71, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
+        background: var(--header-bg);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: background 0.3s ease;
+    }
 
     .header-content {
         display: flex;
@@ -391,26 +489,33 @@
     }
 
     .page-title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            background:white;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
 
-        .title-icon {
-            font-size: 2rem;
-        }
+    .form-container[data-theme="dark"] .page-title {
+        background: linear-gradient(90deg, #fff, #ddd);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
 
-        .page-subtitle {
-            color: #c7c7c8;
-            font-size: 1.1rem;
-            margin: 0.5rem 0 0 0;
-        }
+    .title-icon {
+        font-size: 2rem;
+    }
+
+    .page-subtitle {
+        color: var(--subtitle-text);
+        font-size: 1.1rem;
+        margin: 0.5rem 0 0 0;
+        transition: color 0.3s ease;
+    }
 
     .breadcrumb-nav {
         display: flex;
@@ -420,10 +525,11 @@
     }
 
     .breadcrumb-item {
-        color: #64748b;
+        color: var(--breadcrumb-text);
         padding: 0.5rem 1rem;
-        background: rgba(255, 255, 255, 0.7);
+        background: var(--breadcrumb-bg);
         border-radius: 20px;
+        transition: all 0.3s ease;
     }
 
     .breadcrumb-item.active {
@@ -445,11 +551,12 @@
     }
 
     .form-card {
-        background: rgba(255, 255, 255, 0.95);
+        background: var(--card-bg);
         backdrop-filter: blur(10px);
         border-radius: 20px;
         padding: 2rem;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: background 0.3s ease;
     }
 
     .form-progress {
@@ -475,8 +582,9 @@
 
     .progress-text {
         font-size: 0.875rem;
-        color: #64748b;
+        color: var(--text-secondary);
         font-weight: 500;
+        transition: color 0.3s ease;
     }
 
     /* Form Groups */
@@ -489,9 +597,10 @@
         align-items: center;
         gap: 0.5rem;
         font-weight: 600;
-        color: #374151;
+        color: var(--text-primary);
         margin-bottom: 0.75rem;
         font-size: 1rem;
+        transition: color 0.3s ease;
     }
 
     .label-icon {
@@ -506,11 +615,12 @@
     .form-input {
         width: 100%;
         padding: 1rem 3rem 1rem 1rem;
-        border: 2px solid #e5e7eb;
+        border: 2px solid var(--border-color);
         border-radius: 12px;
         font-size: 1rem;
         transition: all 0.3s ease;
-        background: white;
+        background: var(--input-bg);
+        color: var(--text-primary);
     }
 
     .form-input:focus {
@@ -528,8 +638,9 @@
         right: 1rem;
         top: 50%;
         transform: translateY(-50%);
-        color: #9ca3af;
+        color: var(--text-hint);
         font-size: 1.1rem;
+        transition: color 0.3s ease;
     }
 
     .input-wrapper.focused .input-icon {
@@ -564,11 +675,12 @@
     .form-select {
         width: 100%;
         padding: 1rem 3rem 1rem 1rem;
-        border: 2px solid #e5e7eb;
+        border: 2px solid var(--border-color);
         border-radius: 12px;
         font-size: 1rem;
         transition: all 0.3s ease;
-        background: white;
+        background: var(--input-bg);
+        color: var(--text-primary);
         appearance: none;
     }
 
@@ -587,9 +699,10 @@
         right: 1rem;
         top: 50%;
         transform: translateY(-50%);
-        color: #9ca3af;
+        color: var(--text-hint);
         font-size: 0.875rem;
         pointer-events: none;
+        transition: color 0.3s ease;
     }
 
     .select-wrapper.focused .select-icon {
@@ -751,8 +864,9 @@
     /* Field Hints */
     .field-hint {
         font-size: 0.875rem;
-        color: #6b7280;
+        color: var(--text-secondary);
         margin-top: 0.5rem;
+        transition: color 0.3s ease;
     }
 
     /* Form Actions */
@@ -763,7 +877,7 @@
         gap: 1rem;
         margin-top: 2rem;
         padding-top: 2rem;
-        border-top: 1px solid #e5e7eb;
+        border-top: 1px solid var(--border-color);
     }
 
     .btn {
@@ -784,6 +898,11 @@
     .btn-secondary {
         background: #f3f4f6;
         color: #374151;
+    }
+
+    .form-container[data-theme="light"] .btn-secondary {
+        background: #e0e7ff;
+        color: #4c1d95;
     }
 
     .btn-secondary:hover {
@@ -834,18 +953,20 @@
 
     /* Help Card */
     .help-card {
-        background: rgba(255, 255, 255, 0.9);
+        background: var(--card-bg);
         backdrop-filter: blur(10px);
         border-radius: 16px;
         padding: 1.5rem;
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         height: fit-content;
+        transition: background 0.3s ease;
     }
 
     .help-card h4 {
-        color: #374151;
+        color: var(--text-primary);
         margin-bottom: 1rem;
         font-size: 1.1rem;
+        transition: color 0.3s ease;
     }
 
     .help-card ul {
@@ -854,13 +975,15 @@
     }
 
     .help-card li {
-        color: #6b7280;
+        color: var(--text-secondary);
         margin-bottom: 0.75rem;
         line-height: 1.5;
+        transition: color 0.3s ease;
     }
 
     .help-card strong {
-        color: #374151;
+        color: var(--text-primary);
+        transition: color 0.3s ease;
     }
 
     /* Responsive Design */

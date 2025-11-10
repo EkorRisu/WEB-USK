@@ -1,7 +1,8 @@
+
 @extends('layouts.admin')
 
 @section('content')
-<div class="form-container">
+<div class="form-container" id="formContainer">
     <div class="form-header">
         <div class="header-content">
             <div class="header-info">
@@ -108,6 +109,23 @@
                 const charCount = document.getElementById('charCount');
                 const progressFill = document.querySelector('.progress-fill');
                 const submitBtn = document.getElementById('submitBtn');
+                const formContainer = document.getElementById('formContainer');
+
+                // Sync with navbar theme
+                const syncTheme = () => {
+                    const isDark = document.documentElement.classList.contains('dark');
+                    formContainer.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                };
+
+                // Initial sync
+                syncTheme();
+
+                // Listen for theme changes from navbar
+                const observer = new MutationObserver(syncTheme);
+                observer.observe(document.documentElement, { 
+                    attributes: true, 
+                    attributeFilter: ['class'] 
+                });
 
                 // Progress tracking
                 function updateProgress() {
@@ -175,21 +193,55 @@
 @endpush
 
 <style>
+    /* Root Variables for Theming */
+    :root {
+        --bg-gradient-start: #18181b;
+        --bg-gradient-end: #27272a;
+        --card-bg: rgba(255, 255, 255, 0.95);
+        --header-bg: rgba(71, 71, 71, 0.95);
+        --text-primary: #374151;
+        --text-secondary: #6b7280;
+        --text-hint: #9ca3af;
+        --border-color: #e5e7eb;
+        --input-bg: white;
+        --breadcrumb-bg: rgba(255, 255, 255, 0.7);
+        --breadcrumb-text: #64748b;
+        --subtitle-text: #c7c7c8;
+    }
+
+    .form-container[data-theme="light"] {
+        --bg-gradient-start: #f0f4ff;
+        --bg-gradient-end: #e0e7ff;
+        --card-bg: rgba(255, 255, 255, 0.98);
+        --header-bg: rgba(255, 255, 255, 0.95);
+        --text-primary: #1e293b;
+        --text-secondary: #475569;
+        --text-hint: #64748b;
+        --border-color: #cbd5e1;
+        --input-bg: #ffffff;
+        --breadcrumb-bg: rgba(99, 102, 241, 0.1);
+        --breadcrumb-text: #475569;
+        --subtitle-text: #64748b;
+    }
+
     .form-container {
-        background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+        background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
         min-height: 100vh;
         padding: 2rem;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        transition: background 0.5s ease;
+        position: relative;
     }
 
     /* Header Section */
     .form-header {
-        background: rgba(71, 71, 71, 0.95);
+        background: var(--header-bg);
         backdrop-filter: blur(10px);
         border-radius: 20px;
         padding: 2rem;
         margin-bottom: 2rem;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: background 0.3s ease;
     }
 
     .header-content {
@@ -201,7 +253,7 @@
     .page-title {
         font-size: 2.5rem;
         font-weight: 800;
-        background: linear-gradient(90deg, #fff, #ddd);
+        background: linear-gradient(90deg, #667eea, #764ba2);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin: 0;
@@ -210,14 +262,21 @@
         gap: 1rem;
     }
 
+    .form-container[data-theme="dark"] .page-title {
+        background: linear-gradient(90deg, #fff, #ddd);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
     .title-icon {
         font-size: 2rem;
     }
 
     .page-subtitle {
-        color: #c7c7c8;
+        color: var(--subtitle-text);
         font-size: 1.1rem;
         margin: 0.5rem 0 0 0;
+        transition: color 0.3s ease;
     }
 
     .breadcrumb-nav {
@@ -228,10 +287,11 @@
     }
 
     .breadcrumb-item {
-        color: #64748b;
+        color: var(--breadcrumb-text);
         padding: 0.5rem 1rem;
-        background: rgba(255, 255, 255, 0.7);
+        background: var(--breadcrumb-bg);
         border-radius: 20px;
+        transition: all 0.3s ease;
     }
 
     .breadcrumb-item.active {
@@ -253,11 +313,12 @@
     }
 
     .form-card {
-        background: rgba(255, 255, 255, 0.95);
+        background: var(--card-bg);
         backdrop-filter: blur(10px);
         border-radius: 20px;
         padding: 2rem;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: background 0.3s ease;
     }
 
     .form-progress {
@@ -274,6 +335,10 @@
         margin-bottom: 0.5rem;
     }
 
+    .form-container[data-theme="light"] .progress-bar {
+        background: rgba(0, 0, 0, 0.05);
+    }
+
     .progress-fill {
         height: 100%;
         background: linear-gradient(90deg, #667eea, #764ba2);
@@ -283,8 +348,9 @@
 
     .progress-text {
         font-size: 0.875rem;
-        color: #64748b;
+        color: var(--text-secondary);
         font-weight: 500;
+        transition: color 0.3s ease;
     }
 
     /* Form Groups */
@@ -297,9 +363,10 @@
         align-items: center;
         gap: 0.5rem;
         font-weight: 600;
-        color: #374151;
+        color: var(--text-primary);
         margin-bottom: 0.75rem;
         font-size: 1rem;
+        transition: color 0.3s ease;
     }
 
     .label-icon {
@@ -314,11 +381,12 @@
     .form-input {
         width: 100%;
         padding: 1rem 3rem 1rem 1rem;
-        border: 2px solid #e5e7eb;
+        border: 2px solid var(--border-color);
         border-radius: 12px;
         font-size: 1rem;
         transition: all 0.3s ease;
-        background: white;
+        background: var(--input-bg);
+        color: var(--text-primary);
     }
 
     .form-input:focus {
@@ -336,8 +404,9 @@
         right: 1rem;
         top: 50%;
         transform: translateY(-50%);
-        color: #9ca3af;
+        color: var(--text-hint);
         font-size: 1.1rem;
+        transition: color 0.3s ease;
     }
 
     .input-wrapper.focused .input-icon {
@@ -352,11 +421,12 @@
     .form-textarea {
         width: 100%;
         padding: 1rem;
-        border: 2px solid #e5e7eb;
+        border: 2px solid var(--border-color);
         border-radius: 12px;
         font-size: 1rem;
         transition: all 0.3s ease;
-        background: white;
+        background: var(--input-bg);
+        color: var(--text-primary);
         resize: vertical;
         min-height: 120px;
     }
@@ -376,10 +446,11 @@
         bottom: 0.75rem;
         right: 1rem;
         font-size: 0.75rem;
-        color: #9ca3af;
-        background: rgba(255, 255, 255, 0.9);
+        color: var(--text-hint);
+        background: var(--input-bg);
         padding: 0.25rem 0.5rem;
         border-radius: 4px;
+        transition: all 0.3s ease;
     }
 
     /* Error Messages */
@@ -399,8 +470,9 @@
     /* Field Hints */
     .field-hint {
         font-size: 0.875rem;
-        color: #6b7280;
+        color: var(--text-secondary);
         margin-top: 0.5rem;
+        transition: color 0.3s ease;
     }
 
     /* Form Actions */
@@ -411,7 +483,7 @@
         gap: 1rem;
         margin-top: 2rem;
         padding-top: 2rem;
-        border-top: 1px solid #e5e7eb;
+        border-top: 1px solid var(--border-color);
     }
 
     .btn {
@@ -432,6 +504,11 @@
     .btn-secondary {
         background: #f3f4f6;
         color: #374151;
+    }
+
+    .form-container[data-theme="light"] .btn-secondary {
+        background: #e0e7ff;
+        color: #4c1d95;
     }
 
     .btn-secondary:hover {
@@ -482,18 +559,20 @@
 
     /* Help Card */
     .help-card {
-        background: rgba(255, 255, 255, 0.9);
+        background: var(--card-bg);
         backdrop-filter: blur(10px);
         border-radius: 16px;
         padding: 1.5rem;
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         height: fit-content;
+        transition: background 0.3s ease;
     }
 
     .help-card h4 {
-        color: #374151;
+        color: var(--text-primary);
         margin-bottom: 1rem;
         font-size: 1.1rem;
+        transition: color 0.3s ease;
     }
 
     .help-card ul {
@@ -502,13 +581,15 @@
     }
 
     .help-card li {
-        color: #6b7280;
+        color: var(--text-secondary);
         margin-bottom: 0.75rem;
         line-height: 1.5;
+        transition: color 0.3s ease;
     }
 
     .help-card strong {
-        color: #374151;
+        color: var(--text-primary);
+        transition: color 0.3s ease;
     }
 
     /* Responsive Design */

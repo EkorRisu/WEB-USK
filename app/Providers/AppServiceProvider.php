@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\App as LaravelApp;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,6 +22,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Set application locale from session (if set) so views use translations
+        try {
+            $locale = session('locale', config('app.locale'));
+            if ($locale) {
+                LaravelApp::setLocale($locale);
+            }
+        } catch (\Exception $e) {
+            // session() may not be available in some CLI contexts; ignore silently
+        }
     }
 }

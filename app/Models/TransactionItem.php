@@ -10,6 +10,7 @@ class TransactionItem extends Model
         'transaction_id',
         'user_id',
         'produk_id',
+        'nama_barang',
         'jumlah',
         'harga',
     ];
@@ -27,5 +28,13 @@ class TransactionItem extends Model
     public function produk()
     {
         return $this->belongsTo(Produk::class);
+    }
+
+    /**
+     * Relasi: satu TransactionItem bisa punya satu Review
+     */
+    public function review()
+    {
+        return $this->hasOne(\App\Models\Review::class, 'transaction_item_id');
     }
 }

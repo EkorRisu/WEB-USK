@@ -4,7 +4,7 @@
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<div class="category-management">
+<div class="category-management dark:text-gray-100">
     <!-- Header Section -->
     <div class="dashboard-header">
         <div class="header-content">
@@ -248,7 +248,7 @@
 
 <style>
     .category-management {
-        background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+        background: #ffffff; /* Light mode: plain white background */
         min-height: 100vh;
         padding: 2rem;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -807,5 +807,58 @@
             flex-direction: column;
         }
     }
+
+    /* === Dark Mode Overrides (Tailwind .dark class applied on <html>) === */
+    .dark .category-management {
+        background: linear-gradient(135deg, #0f0f12 0%, #1d1f24 100%);
+    }
+    .dark .dashboard-header {
+        background: rgba(255, 255, 255, 0.06);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+    .dark .page-subtitle { color: #94a3b8; }
+    .dark .stat-card {
+        background: rgba(30, 32, 38, 0.85);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    }
+    .dark .stat-value { color: #818cf8; }
+    .dark .stat-label { color: #64748b; }
+    .dark .action-bar { color: #e2e8f0; }
+    .dark .action-btn {
+        background: rgba(45, 48, 56, 0.85);
+        color: #e2e8f0;
+    }
+    .dark .btn-back { background: #fbbf24; color: #1e293b; }
+    .dark .btn-add { background: #10b981; color: #f0fdf4; }
+    .dark .action-btn:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.6); }
+    .dark .search-box { background: rgba(45,48,56,0.85); }
+    .dark .search-input { color: #f1f5f9; }
+    .dark .search-btn { background: #4f46e5; }
+    .dark .categories-container { color: #f1f5f9; }
+    .dark .category-card {
+        background: rgba(35, 38, 45, 0.95);
+        border: 1px solid rgba(255,255,255,0.08);
+    }
+    .dark .category-card:hover { box-shadow: 0 15px 40px rgba(0,0,0,0.6); }
+    .dark .category-number { color: #818cf8; }
+    .dark .category-name { color: #f8fafc; }
+    .dark .category-description { color: #cbd5e1; }
+    .dark .btn-edit { background: #2563eb; }
+    .dark .btn-delete { background: #dc2626; }
+    .dark .card-footer { background: #1e293b; }
+    .dark .created-date { color: #94a3b8; }
+    .dark .empty-state { background: rgba(45,48,56,0.9); color: #e2e8f0; }
+    .dark .empty-state h3 { color: #f1f5f9; }
+    .dark .empty-state p { color: #cbd5e1; }
+    .dark .empty-action-btn { background: #059669; }
+    .dark .empty-action-btn:hover { background: #047857; }
+    .dark .image-modal { background-color: rgba(0,0,0,0.85); }
+    .dark .modal-close { color: #f1f5f9; }
+    .dark .modal-close:hover { color: #818cf8; }
+    .dark .modal-caption { color: #f1f5f9; }
+    .dark #modalImage { box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+    .dark .view-image-btn { background: rgba(255,255,255,0.15); color:#f1f5f9; }
+    .dark .view-image-btn:hover { background: rgba(255,255,255,0.25); }
+    .dark .no-image { background: linear-gradient(135deg,#1e293b,#334155); color:#64748b; }
 </style>
 @endsection

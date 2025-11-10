@@ -1,0 +1,30 @@
+<?php
+
+return [
+    'about_us' => 'About Us',
+    'logout' => 'Logout',
+    'change_theme' => 'Ganti Tema',
+    'invoice' => 'Invoice',
+    'date' => 'Tanggal',
+    'total_payment' => 'Total Pembayaran',
+    'seller_message' => 'Pesan Penjual',
+    'no_transactions' => 'Belum ada transaksi yang tercatat.',
+    'give_review' => 'Beri Ulasan',
+    'edit_review' => 'Edit Ulasan',
+    'accept_order' => 'Terima Pesanan',
+    'details_reviews' => 'Lihat Detail & Ulasan',
+    'no_reviews' => 'Belum ada ulasan untuk produk ini.',
+    'description' => 'Deskripsi',
+    'transactions' => 'Riwayat Transaksi',
+    'close' => 'Tutup',
+    'product_details' => 'Detail Produk',
+    'no_product_details' => 'Tidak ada detail produk yang tersedia.',
+    'for_product' => 'Untuk produk:',
+    'your_rating' => 'Rating Anda:',
+    'cancel' => 'Batal',
+    'submit_review' => 'Kirim Ulasan',
+    'review_text_label' => 'Ulasan Anda (Opsional):',
+    'you_gave_rating' => 'Anda memberi rating',
+    'stars' => 'Bintang',
+    'no_transactions_sub' => 'Semua pesanan Anda akan muncul di sini.'
+];

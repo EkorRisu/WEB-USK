@@ -55,6 +55,7 @@ class TransactionController extends Controller
                 'user_id' => auth()->id(),
                 'transaction_id' => $transaction->id,
                 'produk_id' => $item->produk_id,
+                'nama_barang' => $item->produk ? $item->produk->nama : null,
                 'jumlah' => $item->jumlah,
                 'harga' => $item->produk->harga,
             ]);
@@ -68,7 +69,14 @@ class TransactionController extends Controller
 
     public function index()
     {
-        $transactions = Transaction::where('user_id', Auth::id())->with('items.produk')->get();
+        // Gunakan paginate agar view bisa memanggil ->links()
+        $perPage = 10;
+        $transactions = Transaction::where('user_id', Auth::id())
+                        ->with('items.produk')
+                        ->orderBy('created_at', 'desc')
+                        ->paginate($perPage)
+                        ->appends(request()->except('page'));
+
         return view('user.transactions', ['transaksi' => $transactions]);
     }
 

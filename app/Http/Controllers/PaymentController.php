@@ -104,8 +104,12 @@ class PaymentController extends Controller
 
 
                 // 6. Simpan detail item transaksi (TransactionItem)
+                // Pastikan kita menyimpan juga nama_barang dan user_id —
+                // kolom 'nama_barang' di DB tidak boleh kosong menurut migration.
                 $transaction->items()->create([
+                    'user_id' => $user->id,
                     'produk_id' => $produk->id,
+                    'nama_barang' => $produk->nama,
                     'jumlah' => $item['jumlah'],
                     'harga' => $produk->harga, // Ambil harga dari model Produk
                 ]);

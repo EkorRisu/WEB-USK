@@ -12,6 +12,7 @@ return new class extends Migration {
             $table->foreignId('transaction_id')->constrained('transactions')->onDelete('cascade');
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('produk_id')->constrained('produks')->onDelete('cascade');
+            $table->string('nama_barang');
             $table->integer('jumlah');
             $table->integer('harga');
             $table->timestamps();

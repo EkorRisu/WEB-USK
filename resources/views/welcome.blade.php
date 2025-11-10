@@ -2,7 +2,7 @@
 
 @section('content')
 <section
-    class="min-h-screen overflow-hidden bg-[url(https://c0.wallpaperflare.com/preview/469/70/385/background-book-bookcase-books.jpg)] bg-cover bg-center bg-fixed bg-no-repeat">
+    class="min-h-screen overflow-hidden bg-[url(https://c0.wallpaperflare.com/preview/469/70/385/background-book-bookcase-books.jpg)] dark:bg-[url(https://kuliahdimana.id/public/news/50be12618114819f4e43f5e31163c98a.jpg)] bg-cover bg-center bg-fixed bg-no-repeat">
     <div
         class="min-h-screen bg-gradient-to-b from-black/70 to-black/50 px-4 md:px-64 flex flex-col justify-center items-center">
         <!-- Hero Content -->

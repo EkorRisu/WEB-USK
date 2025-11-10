@@ -55,4 +55,28 @@ class User extends Authenticatable
     {
         return $this->hasMany(Transaction::class);
     }
+
+    /**
+     * Relasi: Satu User punya BANYAK review
+     */
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    /**
+     * Relasi: Satu User punya BANYAK item di wishlist
+     */
+    public function wishlistItems()
+    {
+        return $this->hasMany(Wishlist::class);
+    }
+
+    /**
+     * Relasi untuk buku-buku yang di-FAVORITKAN (disukai) oleh user
+     */
+    public function favorites()
+    {
+        return $this->belongsToMany(Produk::class, 'favorites', 'user_id', 'produk_id');
+    }
 }
