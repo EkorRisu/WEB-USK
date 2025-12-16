@@ -10,14 +10,14 @@
         <div class="header-content">
             <div class="header-info">
                 <h1 class="page-title">
-                    <span class="title-icon">🛒</span>
-                    Product Management
+                    <span class="title-icon">☕</span>
+                    Menu Management
                 </h1>
             </div>
             <div class="header-stats">
                 <div class="stat-card">
                     <div class="stat-number">{{ $produks->count() }}</div>
-                    <div class="stat-label">Total Products</div>
+                    <div class="stat-label">Total Menu</div>
                 </div>
             </div>
         </div>
@@ -45,8 +45,8 @@
     <!-- Search and Filter Section -->
     <div class="filter-section">
         <div class="search-wrapper">
-            <div class="search-input-wrapper">
-                <input type="text" id="searchInput" class="search-input" placeholder="Search products...">
+            <div class="search-input-wrapper text-gray-500">
+                <input type="text" id="searchInput" class="search-input " placeholder="Search products...">
                 <div class="search-icon">🔍</div>
             </div>
         </div>
@@ -83,6 +83,12 @@
                 @endif
                 <div class="product-overlay">
                     <div class="product-actions">
+                        @if(config('fitur.recipe_bom'))
+                        <a href="{{ route('admin.recipe.show', $produk->id) }}" class="action-btn recipe-btn"
+                            title="View Recipe (BOM)">
+                            <span>🧾</span>
+                        </a>
+                        @endif
                         <a href="{{ route('admin.produk.edit', $produk->id) }}" class="action-btn edit-btn"
                             title="Edit Product">
                             <span>✏️</span>
@@ -110,10 +116,25 @@
                     <span class="number-label">#</span>
                     <span class="number-value">{{ str_pad($index + 1, 3, '0', STR_PAD_LEFT) }}</span>
                 </div>
-                <div class="product-stock" style="color: white">
-                    <span class="number-label">Stock:</span>
-                    <span class="number-value">{{ $produk->stok }}</span>
-                </div>
+                @if(config('fitur.recipe_bom') && $produk->recipes && $produk->recipes->count() > 0)
+                    <div class="product-bom" style="color: #10b981; margin-top: 8px; font-size: 12px;">
+                        <span class="number-label">🧾 Recipe:</span>
+                        <span class="number-value">{{ $produk->recipes->count() }} bahan</span>
+                        <br>
+                        <span class="number-label">📦 Dapat diproduksi:</span>
+                        <span class="number-value" style="font-weight: bold; color: #fbbf24;">{{ $produk->max_production ?? 0 }} unit</span>
+                    </div>
+                @else
+                    <div class="product-stock" style="margin-top: 8px; font-size: 12px;">
+                        <span class="number-label">📦 Stok:</span>
+                        <span class="number-value" style="font-weight: bold; color: {{ $produk->stok > 0 ? '#10b981' : '#ef4444' }};">{{ $produk->stok }} unit</span>
+                        @if($produk->stok <= 10)
+                            <br>
+                            <span class="number-label" style="color: #f59e0b;">⚠️ Status:</span>
+                            <span class="number-value" style="color: #f59e0b;">Stok rendah</span>
+                        @endif
+                    </div>
+                @endif
             </div>
 
             <!-- Hidden Delete Form -->
@@ -127,7 +148,7 @@
         <div class="empty-state">
             <div class="empty-icon">📦</div>
             <h3 class="empty-title">No Products Found</h3>
-            <p class="empty-description">Start by adding your first product to the inventory</p>
+            <p class="empty-description">Start by adding your first product to the catalog</p>
             <a href="{{ route('admin.produk.create') }}" class="btn btn-primary">
                 <span class="btn-icon">➕</span>
                 Add First Product
@@ -492,7 +513,7 @@
             font-size: 1rem;
             transition: all 0.3s ease;
             background: var(--input-bg);
-            color: var(--text-primary);
+            color: #1e293b;
         }
 
         .search-input:focus {
@@ -506,7 +527,7 @@
             right: 1rem;
             top: 50%;
             transform: translateY(-50%);
-            color: #9ca3af;
+            color: #6b7280;
         }
 
         .filter-wrapper {
@@ -519,7 +540,7 @@
             border: 2px solid var(--border-color);
             border-radius: 12px;
             background: var(--input-bg);
-            color: var(--text-primary);
+            color: #1e293b;
             font-size: 0.9rem;
             min-width: 150px;
             transition: all 0.3s ease;
@@ -575,7 +596,7 @@
         .product-image-placeholder {
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+            background: #374151;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -583,14 +604,21 @@
             color: #9ca3af;
         }
 
+        .page-container[data-theme="light"] .product-image-placeholder {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
         .placeholder-icon {
             font-size: 3rem;
             margin-bottom: 0.5rem;
+            opacity: 0.6;
         }
 
         .placeholder-text {
             font-size: 0.875rem;
             font-weight: 500;
+            opacity: 0.7;
         }
 
         .product-overlay {

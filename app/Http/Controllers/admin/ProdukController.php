@@ -20,7 +20,7 @@ class ProdukController extends Controller
 
     public function index()
     {
-        $produks = Produk::with('kategori')->get();
+        $produks = Produk::with(['kategori', 'recipes.inventory'])->get();
         return view('admin.produk.index', compact('produks'));
     }
 
@@ -52,6 +52,7 @@ class ProdukController extends Controller
 
     public function edit(Produk $produk)
     {
+        $produk->load(['recipes.inventory']);
         $kategoris = Kategori::all();
         return view('admin.produk.edit', compact('produk', 'kategoris'));
     }

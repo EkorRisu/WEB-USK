@@ -4,223 +4,116 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
 @section('content')
-<div class="py-8">
-    <div
-        class="bg-gray-100 dark:bg-gray-900 shadow-2xl p-6 md:p-10 max-w-7xl mx-auto rounded-xl border border-gray-200 dark:border-gray-700">
-        <div class="header-section mb-8 border-b border-gray-200 dark:border-gray-700 pb-4">
-            <h1 class="text-2xl md:text-3xl font-extrabold mb-2 
-                             text-transparent bg-clip-text bg-gradient-to-r 
-                             from-pink-600 to-purple-600 
-                             dark:from-pink-400 dark:to-purple-400">
-                👋 {{ __('app.welcome_user', ['name' => auth()->user()->name]) }}
-            </h1>
-            <p class="text-gray-600 dark:text-gray-400">{{ __('app.view_products') }}</p>
-        </div>
+<div class="h-screen bg-gray-900 overflow-hidden">
+    <div class="h-full flex flex-col">
+       
 
-        {{-- NAVIGATION TABS --}}
-        <div class="grid grid-cols-3 gap-3 mb-8">
-            <a href="{{ route('user.cart') }}"
-                class="flex items-center justify-center space-x-2 bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 transition duration-200 shadow-md">
-                <span>🛒</span>
-                <span class="hidden sm:inline">{{ __('app.cart') }}</span>
-            </a>
-            {{-- FITUR WISHLIST - TIDAK ADA DI PERSYARATAN --}}
-            <a href="{{ route('user.wishlist.index') }}" class="flex items-center justify-center space-x-2 bg-transparent border border-gray-300 dark:border-gray-600 
-                                     text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg 
-                                     hover:bg-gray-100 dark:hover:bg-gray-800 transition duration-200">
-                <span>⭐</span>
-                <span class="hidden sm:inline">{{ __('app.wishlist') }}</span>
-            </a>
-            <a href="{{ route('user.transactions') }}" class="flex items-center justify-center space-x-2 bg-transparent border border-gray-300 dark:border-gray-600 
-                                     text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg 
-                                     hover:bg-gray-100 dark:hover:bg-gray-800 transition duration-200">
-                <span>📦</span>
-                <span class="hidden sm:inline">{{ __('app.transactions') }}</span>
-            </a>
-            <a href="{{ route('user.chat') }}" id="chat-link" class="relative flex items-center justify-center space-x-2 bg-transparent border border-gray-300 dark:border-gray-600 
-                                     text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg 
-                                     hover:bg-gray-100 dark:hover:bg-gray-800 transition duration-200">
-                <span>💬</span>
-                <span class="hidden sm:inline">{{ __('app.chat') }}</span>
-                <span id="chat-badge"
-                    class="absolute top-0 right-0 -mt-2 -mr-2 px-2 py-0.5 text-xs font-bold leading-none text-red-100 transform bg-red-600 rounded-full hidden">0</span>
-            </a>
-        </div>
-
-        {{-- FORM FILTER UTAMA --}}
-        <form method="GET" action="{{ route('user.dashboard') }}" id="filter-form">
-
-            <div
-                class="mb-8 flex flex-col md:flex-row gap-4 items-center bg-gray-50 dark:bg-gray-800 p-4 rounded-lg shadow-sm">
-
-                {{-- WRAPPER UNTUK LIVE SEARCH --}}
-                {{-- FITUR LIVE SEARCH AUTO-SUGGESTION - TIDAK ADA DI PERSYARATAN --}}
-                <div class="relative w-full md:w-5/12">
-                    <input type="text" name="search" id="search-input" placeholder="{{ __('app.search_placeholder') }}"
-                        value="{{ request('search') }}"
-                        class="border border-gray-300 dark:border-gray-700 p-3 rounded-lg w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-pink-500 focus:border-pink-500">
-
-                    <div id="search-results"
-                        class="absolute w-full z-30 mt-1 rounded-lg shadow-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 max-h-60 overflow-y-auto hidden">
-                    </div>
-                </div>
-
-                {{-- PENCARIAN SEDERHANA SESUAI PERSYARATAN --}}
-                <div class="relative w-full md:w-5/12">
-                    <input type="text" name="search" placeholder="{{ __('app.search_placeholder') }}"
-                        value="{{ request('search') }}"
-                        class="border border-gray-300 dark:border-gray-700 p-3 rounded-lg w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-pink-500 focus:border-pink-500">
-                </div>
-
-                <select name="kategori"
-                    class="border border-gray-300 dark:border-gray-700 p-3 rounded-lg w-full md:w-3/12 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-pink-500">
-                    <option value="">{{ __('app.all_categories') }}</option>
-                    @foreach ($kategori as $kat)
-                    <option value="{{ $kat->id }}" {{ request('kategori')==$kat->id ? 'selected' : '' }}>
-                        {{ $kat->nama }}
-                    </option>
-                    @endforeach
-                </select>
-
-                <select name="perpage"
-                    class="border border-gray-300 dark:border-gray-700 p-3 rounded-lg w-full md:w-2/12 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-pink-500">
-                    @php
-                    $perPageOptions = [5, 10, 20];
-                    $currentPerPage = request('perpage', 12); // Default 12 dari Controller
-                    @endphp
-                    <option disabled>{{ __('app.products_per_page') }}</option>
-                    @foreach ($perPageOptions as $option)
-                    <option value="{{ $option }}" {{ $currentPerPage==$option ? 'selected' : '' }}>
-                        {{ $option }} {{ __('app.products') }}
-                    </option>
-                    @endforeach
-                </select>
-
-                <button type="submit"
-                    class="bg-pink-600 text-white px-5 py-3 rounded-lg hover:bg-pink-700 w-full md:w-2/12 transition duration-200 font-semibold">
-                    {{ __('app.filter') }}
-                </button>
+        {{-- POS Navigation Tabs --}}
+        <div class="bg-gray-800 px-6 py-3 border-b border-gray-700">
+            <div class="flex space-x-1">
+                {{-- <button class="bg-orange-500 text-white px-6 py-2 rounded-lg font-medium">
+                    🛍️ Keranjang
+                </button> --}}
+                <a href="{{ route('user.transactions') }}" class="bg-gray-700 hover:bg-orange-500 text-white px-4 py-2 rounded font-medium transition-colors">
+                    Pesanan
+                </a>
+                @if(config('fitur.wishlist'))
+                <a href="{{ route('user.wishlist.index') }}" class="bg-gray-700 hover:bg-orange-500 text-white px-4 py-2 rounded font-medium transition-colors">
+                    Favorit
+                </a>
+                @endif
             </div>
+        </div>
 
-            {{-- LAYOUT 2 KOLOM --}}
-            <div class="flex flex-col md:flex-row gap-8" x-data="{ showFilters: false }">
+        {{-- POS Filter Section --}}
+        <div class="bg-gray-800 px-6 py-4 border-b border-gray-700">
+            <form method="GET" action="{{ route('user.dashboard') }}" id="filter-form" class="flex flex-wrap items-center gap-4">
+                {{-- Search Input --}}
+                <div class="relative flex-1 min-w-64">
+                    <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <input type="text" name="search" id="search-input" placeholder="Cari kopi favorit Anda..."
+                        value="{{ request('search') }}"
+                        class="bg-gray-700 border border-gray-600 text-white placeholder-gray-400 pl-10 pr-4 py-2 rounded-lg w-full focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                    <div id="search-results" class="absolute w-full z-30 mt-1 rounded-lg shadow-xl bg-gray-700 border border-gray-600 max-h-60 overflow-y-auto hidden"></div>
+                </div>
+                
+                {{-- Category Filter --}}
+                <select name="kategori" class="bg-gray-700 border border-gray-600 text-white px-4 py-2 rounded focus:ring-2 focus:ring-orange-500">
+                    <option value="">Semua Menu</option>
+                    @foreach ($kategori as $kat)
+                    <option value="{{ $kat->id }}" {{ request('kategori')==$kat->id ? 'selected' : '' }}>{{ $kat->nama }}</option>
+                    @endforeach
+                </select>
+                
+                {{-- Items Per Page --}}
+                <select name="perpage" class="bg-gray-700 border border-gray-600 text-white px-4 py-2 rounded-lg focus:ring-2 focus:ring-orange-500">
+                    @php
+                    $perPageOptions = [8, 12, 20, 50];
+                    $currentPerPage = request('perpage') ?? 20; // Default 20 items per page
+                    @endphp
+                    @foreach ($perPageOptions as $option)
+                    <option value="{{ $option }}" {{ $currentPerPage == $option ? 'selected' : '' }}>{{ $option }} items</option>
+                    @endforeach
+                </select>
+                
+                {{-- Filter Button --}}
+                <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded font-medium transition-colors">
+                    Filter
+                </button>
+            </form>
+        </div>
 
-                {{-- KOLOM 1: SIDEBAR FILTER --}}
-                <aside class="fixed inset-0 z-40 bg-white bg-opacity-95 dark:bg-gray-900 dark:bg-opacity-90 p-6 overflow-y-auto transform -translate-x-full transition-transform duration-300 ease-in-out
-                                     md:relative md:inset-auto md:z-auto md:p-0 md:overflow-y-visible md:bg-transparent md:bg-opacity-100
-                                     md:block w-full md:w-1/4 lg:w-1/5 md:translate-x-0"
-                    :class="{'translate-x-0': showFilters, '-translate-x-full': !showFilters}"
-                    @click.away="showFilters = false" x-cloak>
+        {{-- Main POS Content --}}
+        <div class="flex-1 flex overflow-hidden" x-data="{ showCart: false, cartItems: [], cartTotal: 0 }">
+            {{-- Products Area --}}
+            <div class="flex-1 flex flex-col overflow-hidden">
 
-                    <button type="button" @click="showFilters = false"
-                        class="md:hidden text-gray-800 dark:text-white mb-4 absolute top-4 right-4">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12">
-                            </path>
-                        </svg>
-                    </button>
-
-                    <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg md:sticky md:top-24"> 
-                        {{-- FITUR SORTING - TIDAK ADA DI PERSYARATAN --}}
-                        <h3
-                            class="text-xl font-bold text-gray-900 dark:text-white mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
-                            {{ __('app.sort_by') }}</h3>
-                        <div class="space-y-4">
-                            <label for="sort_by" class="block text-sm font-medium text-gray-600 dark:text-gray-400">{{
-                                __('app.sort_by') }}</label>
-
-                            <select name="sort_by" id="sort_by"
-                                class="border border-gray-300 dark:border-gray-700 p-3 rounded-lg w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-pink-500"
-                                onchange="this.form.submit()">
-
-                                @php
-                                $currentSort = request('sort_by', 'created_at_desc');
-                                @endphp
-
-                                @foreach ($sortOptions as $value => $label)
-                                <option value="{{ $value }}" {{ $currentSort==$value ? 'selected' : '' }}>
-                                    {{ $label }}
-                                </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <h3
-                            class="text-xl font-bold text-gray-900 dark:text-white mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
-                            {{ __('app.filter') }}</h3>
-
-                        {{-- FITUR FILTER RATING - TIDAK ADA DI PERSYARATAN --}}
-                        <div class="mb-6">
-                            <label class="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Filter Rating</label>
-                            <div class="space-y-2">
-                                <div class="flex items-center">
-                                    <input type="radio" id="rating_all" name="rating_filter" value="" {{ !request('rating_filter') ? 'checked' : '' }}
-                                        onchange="this.form.submit()" class="h-4 w-4 text-pink-600 border-gray-300">
-                                    <label for="rating_all" class="ml-2 text-sm text-gray-700 dark:text-gray-300">Semua Rating</label>
-                                </div>
-                                @for($i = 5; $i >= 4; $i--)
-                                <div class="flex items-center">
-                                    <input type="radio" id="rating_{{ $i }}" name="rating_filter" value="{{ $i }}"
-                                        {{ request('rating_filter') == $i ? 'checked' : '' }} onchange="this.form.submit()"
-                                        class="h-4 w-4 text-pink-600 border-gray-300">
-                                    <label for="rating_{{ $i }}" class="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                                        {{ $i }}+ <span class="text-yellow-400">★</span>
-                                    </label>
-                                </div>
-                                @endfor
-                            </div>
-                        </div>
-
-                        {{-- FITUR FILTER FAVORIT - TIDAK ADA DI PERSYARATAN --}}
-                        <div class="space-y-3">
-                            <label class="block text-sm font-medium text-gray-600 dark:text-gray-400">{{ __('app.show')
-                                }}</label>
-
-                            <div class="flex items-center">
-                                <input id="filter_semua" name="filter_favorit" type="radio" value="" {{
-                                    !request('filter_favorit') ? 'checked' : '' }} onchange="this.form.submit()"
-                                    class="h-5 w-5 text-pink-600 border-gray-300 dark:border-gray-600 focus:ring-pink-500 bg-white dark:bg-gray-900">
-                                <label for="filter_semua"
-                                    class="ml-3 block text-sm font-medium text-gray-900 dark:text-white cursor-pointer">
-                                    {{ __('app.all_products') }}
-                                </label>
-                            </div>
-
-                            <div class="flex items-center">
-                                <input id="filter_favorit" name="filter_favorit" type="radio" value="true" {{
-                                    request('filter_favorit')=='true' ? 'checked' : '' }} onchange="this.form.submit()"
-                                    class="h-5 w-5 text-pink-600 border-gray-300 dark:border-gray-600 focus:ring-pink-500 bg-white dark:bg-gray-900">
-                                <label for="filter_favorit"
-                                    class="ml-3 block text-sm font-medium text-gray-900 dark:text-white cursor-pointer">
-                                    {{ __('app.my_favorites') }}
-                                </label>
-                            </div>
-                        </div>
+                {{-- Product Grid Container --}}
+                <div class="flex-1 overflow-y-auto bg-gray-900 p-6">
+                
+                    {{-- Mobile Cart Toggle --}}
+                <div class="lg:hidden mb-4 relative z-10">
+                    <button type="button" @click="showCart = !showCart" 
+                        onclick="toggleMobileCart()" 
+                        class="w-full bg-orange-500 hover:bg-orange-600 text-white px-4 py-3 rounded-lg font-semibold flex items-center justify-center space-x-2 transition-colors shadow-lg">
+                                <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
+                            </svg>
+                            <span>Keranjang (<span id="mobile-cart-count">0</span>)</span>
+                        </button>
                     </div>
-                </aside>
-                {{-- KOLOM 2: DAFTAR PRODUK --}}
-                <main class="w-full md:flex-1">
 
                     {{-- PRODUCT GRID --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                         @forelse ($produk as $item)
 
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden 
-                                    transition-all transform duration-300 ease-in-out 
-                                    hover:scale-[1.03] hover:shadow-xl 
-                                    border border-gray-200 dark:border-gray-700 flex flex-col js-product-card"
-                        data-name="{{ strtolower($item->nama) }}"
-                        data-kategori="{{ strtolower($item->kategori->nama) }}"
-                        data-desc="{{ strtolower(strip_tags($item->deskripsi ?? '')) }}">
+                        <div class="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 js-product-card group cursor-pointer"
+                            data-product-id="{{ $item->id }}"
+                            data-name="{{ strtolower($item->nama) }}"
+                            data-kategori="{{ strtolower($item->kategori->nama) }}"
+                            data-desc="{{ strtolower(strip_tags($item->deskripsi ?? '')) }}"
+                            data-product-name="{{ $item->nama }}"
+                            data-product-price="{{ $item->harga }}"
+                            data-product-stock="{{ $item->stok }}"
+                            data-product-image="{{ asset('storage/' . $item->foto) }}">
 
-                            {{-- BLOK 1: GAMBAR --}}
-                            <div class="relative">
-                                <img src="{{ asset('storage/' . $item->foto) }}" alt="{{ $item->nama }}"
-                                    class="w-full h-40 sm:h-48 object-cover">
+                            {{-- Product Image --}}
+                            <div class="relative aspect-square overflow-hidden">
+                                @if($item->foto)
+                                    <img src="{{ asset('storage/' . $item->foto) }}" alt="{{ $item->nama }}"
+                                        class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                                        loading="lazy" decoding="async" 
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw">
+                                @else
+                                    <div class="w-full h-full bg-gray-700 flex flex-col items-center justify-center text-gray-400">
+                                        <div class="text-3xl mb-2 opacity-60">🍵</div>
+                                        <div class="text-xs font-medium opacity-70">No Image</div>
+                                    </div>
+                                @endif
 
-                                {{-- FITUR FAVORIT/LIKE - TIDAK ADA DI PERSYARATAN --}}
+                                @if(config('fitur.favorit'))
+                                {{-- FITUR FAVORIT/LIKE - DAPAT DIKONFIGURASI --}}
                                 <button type="button" class="group btn-favorite absolute top-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1 
                                                      bg-white/80 dark:bg-gray-700/80 
                                                      rounded-full text-gray-700 dark:text-gray-200 
@@ -235,7 +128,7 @@
                                                      transition-all duration-200 ease-in-out 
                                                      grayscale scale-100 opacity-70 
                                                      group-[.active]:grayscale-0 group-[.active]:scale-110 group-[.active]:opacity-100">
-                                        ❤️
+                                        ♥
                                     </span>
 
                                     <span class="like-count text-sm font-bold 
@@ -246,12 +139,14 @@
                                         {{ $item->favorited_by_count }}
                                     </span>
                                 </button>
+                                @endif
 
+                                @if(config('fitur.wishlist'))
                                 @php
                                 $wishlistItemId = $wishlistItems->get($item->id);
                                 @endphp
 
-                                {{-- FITUR WISHLIST - TIDAK ADA DI PERSYARATAN --}}
+                                {{-- FITUR WISHLIST - DAPAT DIKONFIGURASI --}}
                                 @if($wishlistItemId)
                                 <button type="button" onclick="removeFromWishlist({{ $wishlistItemId }})"
                                     class="absolute top-3 right-3 z-10 p-2 bg-white/80 dark:bg-gray-700/80 rounded-full text-yellow-400 hover:text-white hover:bg-yellow-500 transition duration-200"
@@ -273,14 +168,19 @@
                                     </svg>
                                 </button>
                                 @endif
+                                @endif
                             </div>
 
                             {{-- BLOK 2: KONTEN TEKS --}}
-                            <div class="p-5 flex flex-col flex-grow">
-                                <span class="text-xs font-semibold text-pink-600 uppercase mb-1">{{
-                                    $item->kategori->nama }}</span>
-                                <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-1 flex-grow">{{
+                            <div class="p-4 flex flex-col flex-grow">
+                                <span class="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-gray-200 rounded mb-3 self-start">
+                                    {{ $item->kategori->nama }}
+                                </span>
+                                <h2 class="text-lg font-semibold text-white mb-2 flex-grow leading-tight">{{
                                     $item->nama }}</h2>
+                                @if(config('fitur.review') || config('fitur.rating'))
+                                {{-- FITUR RATING/REVIEW - DAPAT DIKONFIGURASI --}}
+
 
                                 {{-- FITUR RATING, ULASAN, DAN PENJUALAN - TIDAK ADA DI PERSYARATAN --}}
                                 <div class="space-y-2 mb-3">
@@ -290,62 +190,58 @@
                                         $reviewsCount = $item->reviews_count ?? 0;
                                         $maxStars = 5;
                                         @endphp
-                                        <div class="flex text-yellow-400">
+                                        <div class="flex text-orange-400">
                                             @for ($i = 1; $i <= $maxStars; $i++) @if ($rating>= $i)
-                                            <span>★</span>
-                                            @elseif ($rating > ($i - 1))
-                                            <span class="half-star">★</span>
-                                            @else
-                                            <span class="text-gray-300 dark:text-gray-600">★</span>
-                                            @endif
-                                            @endfor
+                                                <span>★</span>
+                                                @elseif ($rating > ($i - 1))
+                                                <span class="half-star">★</span>
+                                                @else
+                                                <span class="text-gray-500">★</span>
+                                                @endif
+                                                @endfor
                                         </div>
-                                        <span class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ $rating
-                                            }}</span>
-                                        <span class="text-sm text-gray-500 dark:text-gray-400">({{ $reviewsCount }} {{
-                                            __('app.reviews') }})</span>
+                                        <span class="text-sm font-semibold text-white">{{ $rating }}</span>
+                                        <span class="text-sm text-gray-400">({{ $reviewsCount }} reviews)</span>
                                     </div>
-                                    
-                                    <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                                        </svg>
-                                        <span>Terjual {{ $item->transaction_items_sum_jumlah ?? 0 }} unit</span>
+
+                                    <div class="text-sm text-gray-400">
+                                        <span>{{ $item->transaction_items_sum_jumlah ?? 0 }} terjual</span>
                                     </div>
                                 </div>
-                                
-                                {{-- FITUR TOMBOL LIHAT DETAIL/ULASAN - TIDAK ADA DI PERSYARATAN --}}
+                                @endif
+                                {{-- FITUR TOMBOL LIHAT DETAIL/ULASAN --}}
                                 <button type="button"
-                                    class="text-sm text-pink-600 hover:text-pink-800 dark:hover:text-pink-400 font-medium mb-3 self-start hover:underline"
+                                    class="inline-flex items-center text-sm text-orange-400 hover:text-orange-300 font-medium mb-4 hover:underline transition-colors"
                                     onclick='showProductDetails({{ $item->id }}, {{ json_encode($item->nama) }}, {{ json_encode($item->deskripsi) }})'>
-                                    {{ __('app.details_reviews') }}
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Lihat Detail
                                 </button>
-                                
 
-                                <div class="flex justify-between items-center mb-4">
-                                    <p class="text-xl text-gray-900 dark:text-white font-extrabold">Rp {{
-                                        number_format($item->harga, 0,
-                                        ',', '.') }}</p>
-                                    <span
-                                        class="text-sm font-medium {{ $item->stok > 0 ? 'text-green-600' : 'text-red-600' }}">
-                                        Stok: {{ $item->stok }}
-                                    </span>
+                                <div class="bg-gray-700 rounded p-3 mb-4">
+                                    <div class="flex justify-between items-center">
+                                        <p class="text-xl text-orange-400 font-bold">Rp {{
+                                            number_format($item->harga, 0, ',', '.') }}</p>
+                                        @if(config('fitur.show_stock'))
+                                        <span class="px-2 py-1 text-xs font-bold rounded-full {{ $item->stok > 0 ? 'text-green-800 bg-green-100' : 'text-red-800 bg-red-100' }}">
+                                            Stok: {{ $item->stok }}
+                                        </span>
+                                        @endif
+                                    </div>
                                 </div>
 
                                 {{-- Tombol Keranjang --}}
                                 <div class="mt-auto">
                                     @if ($item->stok > 0)
-                                    <button type="button" onclick="addToCart({{ $item->id }})" class="bg-gray-800 text-white 
-                                                         hover:bg-pink-700 
-                                                         dark:bg-gray-600 dark:hover:bg-pink-600 
-                                                         px-4 py-2 rounded-lg w-full transition duration-200 font-semibold">
-                                        {{ __('app.add_to_cart') }}
+                                    <button type="button" onclick="addToCart({{ $item->id }})"
+                                        class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded w-full transition-colors font-medium">
+                                        Tambah ke Keranjang
                                     </button>
                                     @else
                                     <button type="button" disabled
-                                        class="bg-gray-300 text-gray-500 dark:bg-gray-700 dark:text-gray-400 px-4 py-2 rounded-lg w-full cursor-not-allowed font-semibold">
-                                        {{ __('app.out_of_stock') }}
+                                        class="bg-gray-600 text-gray-400 px-4 py-2 rounded w-full cursor-not-allowed font-medium">
+                                        Stok Habis
                                     </button>
                                     @endif
                                 </div>
@@ -353,59 +249,263 @@
                         </div>
 
                         @empty
-                        <p
-                            class="col-span-1 sm:col-span-2 lg:col-span-3 xl:col-span-4 text-pink-600 dark:text-pink-400 text-center text-xl p-10">
-                            {{ __('app.no_products_found') }}
-                        </p>
+                        <div class="col-span-full text-center py-16">
+                            <div class="bg-gray-800 rounded-lg p-8">
+                                <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.467-.881-6.08-2.33m0 0L3.34 15.249a8 8 0 1017.32 0l-2.58-2.579z"></path>
+                                </svg>
+                                <h3 class="text-xl font-bold text-white mb-2">Menu Tidak Ditemukan</h3>
+                                <p class="text-gray-400">Tidak ada produk yang sesuai dengan filter Anda</p>
+                            </div>
+                        </div>
                         @endforelse
                     </div>
 
-                    {{-- PAGINATION LINKS --}}
-                    <div class="mt-10 flex justify-center">
+                    {{-- PAGINATION --}}
+                    <div class="mt-6 flex justify-center">
                         {{ $produk->links() }}
                     </div>
-                </main>
+                </div>
+            </div>
 
-            </div> {{-- End of 2-column layout wrapper --}}
+            {{-- Cart Sidebar --}}
+            <div class="fixed inset-y-0 right-0 z-50 w-full sm:w-80 bg-gray-800 shadow-2xl transform transition-transform duration-300 ease-in-out
+                        lg:relative lg:inset-auto lg:z-auto lg:w-80 xl:w-96 lg:translate-x-0 border-l border-gray-700 overflow-x-hidden"
+                :class="{'translate-x-0': showCart, 'translate-x-full lg:translate-x-0': !showCart}"
+                @click.away="closeMobileCart()" x-cloak
+                id="mobile-cart-sidebar">
+                
+                {{-- Cart Header --}}
+                <div class="flex items-center justify-between px-3 py-2 border-b border-gray-700 bg-gray-800">
+                    <h2 class="text-sm font-semibold text-white">Keranjang</h2>
+                    <button @click="showCart = false" class="lg:hidden p-1 rounded-full hover:bg-gray-700 text-gray-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
 
-        </form> {{-- AKHIR DARI FORM FILTER UTAMA --}}
+                {{-- Cart Content --}}
+                <div class="flex flex-col h-full overflow-x-hidden">
+                    {{-- Cart Items --}}
+                    <div class="flex-1 overflow-y-auto overflow-x-hidden px-2 py-3" id="pos-cart-items">
+                        <div class="text-center py-4 text-gray-400">
+                            <div class="w-10 h-10 mx-auto mb-2 bg-gray-700 rounded-full flex items-center justify-center">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                </svg>
+                            </div>
+                            <p class="text-xs">Keranjang kosong</p>
+                            <p class="text-xs mt-1 opacity-75">Klik menu</p>
+                        </div>
+                    </div>
 
+                    {{-- Cart Footer --}}
+                    <div class="border-t border-gray-700 px-3 py-3 bg-gray-900">
+                        {{-- Cart Summary --}}
+                        <div class="mb-3">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-gray-400 text-xs">Items:</span>
+                                <span class="text-white text-xs" id="cart-items-count">0 items</span>
+                            </div>
+                            <div class="flex justify-between items-center mb-2 pb-2 border-b border-gray-700">
+                                <span class="text-white font-medium text-sm">Total:</span>
+                                <span class="font-bold text-lg text-orange-400" id="cart-total-display">Rp 0</span>
+                            </div>
+                        </div>
+                        
+                        {{-- Action Buttons --}}
+                        <div class="space-y-2" id="cart-actions">
+                            {{-- Primary Checkout Button --}}
+                            <button type="button" onclick="proceedToPayment()" 
+                                class="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-3 rounded-lg font-bold text-sm transition-all duration-200 transform hover:scale-105 shadow-lg">
+                                Bayar Sekarang
+                            </button>
+                            
+                            {{-- Clear Button --}}
+                            <button type="button" onclick="clearPOSCart()" 
+                                class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded text-sm font-medium transition-colors">
+                                Kosongkan
+                            </button>
+                        </div>
+                        
+                        {{-- Empty Cart Message --}}
+                        <div class="text-center py-2" id="empty-cart-message">
+                            <p class="text-gray-400 text-xs">Keranjang kosong</p>
+                            <p class="text-gray-500 text-xs mt-1">Pilih menu untuk mulai</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        </form> {{-- End of filter form --}}
     </div>
 </div>
 
 <style>
-    /* ... CSS Paginasi (Sama seperti kode Anda) ... */
-    .dark .pagination span[aria-current="page"] span,
-    .dark .pagination a[rel="next"],
-    .dark .pagination a[rel="prev"],
-    .dark .pagination a[aria-label^="Go to page"] {
+    /* POS Layout Styles */
+    body {
+        background-color: #111827 !important;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    
+    .line-clamp-2 {
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+    
+    /* Custom Scrollbar for Cart */
+    #pos-cart-items::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    #pos-cart-items::-webkit-scrollbar-track {
+        background: #374151;
+        border-radius: 3px;
+    }
+    
+    #pos-cart-items::-webkit-scrollbar-thumb {
+        background: #6b7280;
+        border-radius: 3px;
+    }
+    
+    #pos-cart-items::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af;
+    }
+    
+    /* Product Grid Responsiveness */
+    @media (max-width: 640px) {
+        .grid-cols-2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+    
+    @media (min-width: 641px) and (max-width: 768px) {
+        .md\:grid-cols-3 {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    /* Simplified Pagination */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .pagination a, .pagination span {
+        padding: 0.5rem 0.75rem;
         background-color: #374151;
-        /* bg-gray-700 */
         color: #f3f4f6;
-        /* text-gray-100 */
-        border-color: #4b5563;
-        /* border-gray-600 */
+        border-radius: 0.25rem;
+        text-decoration: none;
+        transition: background-color 0.2s;
+        font-size: 0.875rem;
     }
-
-    .dark .pagination span[aria-disabled="true"] span {
-        background-color: #4b5563;
-        /* bg-gray-600 */
-        color: #9ca3af;
-        /* text-gray-400 */
+    
+    .pagination a:hover {
+        background-color: #f97316;
     }
-
-    .dark .pagination a[rel="next"]:hover,
-    .dark .pagination a[rel="prev"]:hover,
-    .dark .pagination a[aria-label^="Go to page"]:hover {
-        background-color: #4b5563;
-        /* bg-gray-600 */
-    }
-
-    .dark .pagination span[aria-current="page"] span {
-        background-color: #DB2777;
-        /* bg-pink-600 */
-        border-color: #DB2777;
+    
+    .pagination span[aria-current="page"] span {
+        background-color: #f97316;
         color: white;
+        font-weight: 600;
+    }
+    
+    .pagination span[aria-disabled="true"] span {
+        background-color: #4b5563;
+        color: #6b7280;
+        cursor: not-allowed;
+    }
+    
+    /* Product Card Animation - Simplified */
+    .js-product-card {
+        transition: all 0.2s ease;
+    }
+    
+    .js-product-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Search Results Styling */
+    #search-results {
+        backdrop-filter: blur(10px);
+    }
+    
+    #search-results .hover\:bg-gray-700:hover {
+        background-color: #374151;
+    }
+    
+    /* Mobile Cart Overlay */
+    @media (max-width: 1023px) {
+        .lg\:relative.lg\:inset-auto {
+            position: fixed;
+            inset: 0;
+        }
+        
+        /* Ensure mobile cart button is clickable */
+        button[onclick="toggleMobileCart()"] {
+            position: relative;
+            z-index: 20;
+            pointer-events: auto;
+            touch-action: manipulation;
+        }
+        
+        /* Prevent cart from covering content */
+        #mobile-cart-sidebar {
+            top: 0;
+            right: 0;
+            height: 100vh;
+            pointer-events: auto;
+        }
+        
+        /* Improve button tap area */
+        .lg\:hidden button {
+            min-height: 48px;
+            -webkit-tap-highlight-color: transparent;
+        }
+    }
+    
+    /* Animation Classes */
+    .animate-pulse {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: .5;
+        }
+    }
+    
+    /* Payment Method Buttons */
+    .payment-method-btn {
+        cursor: pointer;
+        text-align: left;
+        width: 100%;
+        outline: none;
+    }
+    
+    .payment-method-btn:focus {
+        outline: 2px solid #f97316;
+        outline-offset: 2px;
+    }
+    
+    /* Cart UI Initial States */
+    #cart-actions {
+        display: block; /* Show by default for debugging */
+    }
+    
+    #empty-cart-message {
+        display: none; /* Hide empty message initially */
     }
 </style>
 
@@ -451,7 +551,9 @@
         if (description) {
             formattedDescription = description.replace(/\n/g, '<br>');
         }
-        
+
+        @if (config('fitur.review') || config('fitur.rating'))
+        // Jika fitur review/rating aktif, fetch data dari server
         fetch(`{{ url('user/produk') }}/${produkId}/reviews`) 
             .then(response => {
                 if (!response.ok) {
@@ -486,7 +588,7 @@
                 } else {
                     reviewsHtml = `<p class="${isDarkMode ? 'text-gray-400' : 'text-gray-500'}">Belum ada ulasan untuk produk ini.</p>`;
                 }
-                
+
                 const modalHtml = `
                     <div style="text-align: left;">
                         <h3 class="text-xl font-extrabold ${theme.titleColor === '#f9fafb' ? 'text-white' : 'text-gray-900'} mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">Deskripsi</h3>
@@ -527,10 +629,30 @@
                     customClass: { htmlContainer: 'text-left p-4 leading-relaxed' }
                 });
             });
+        @else
+        // Jika fitur review/rating tidak aktif, langsung tampilkan modal dengan deskripsi saja
+        const modalHtml = `
+            <div style="text-align: left;">
+                <h3 class="text-xl font-extrabold ${theme.titleColor === '#f9fafb' ? 'text-white' : 'text-gray-900'} mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">Deskripsi</h3>
+                <div class="mb-6 leading-relaxed">${formattedDescription}</div>
+            </div>
+        `;
+
+        Swal.fire({
+            ...theme,
+            title: productName,
+            html: modalHtml,
+            confirmButtonText: 'Tutup',
+            confirmButtonColor: '#f97316',
+            width: '600px',
+            customClass: { htmlContainer: 'text-left p-4 leading-relaxed' }
+        });
+        @endif
     }
     
 
-    // FITUR WISHLIST - TIDAK ADA DI PERSYARATAN
+    @if(config('fitur.wishlist'))
+    // FITUR WISHLIST - DAPAT DIKONFIGURASI
     
     function addToWishlist(produkId) {
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || null;
@@ -568,31 +690,627 @@
             }
         });
     }
+    @endif
     
 
-    // FITUR ADD TO CART - SESUAI PERSYARATAN
-    function addToCart(produkId) {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || null;
-        let url = `{{ url('user/cart/add') }}/${produkId}`;
+    // *******************************************************************
+    // POS CART FUNCTIONALITY
+    // *******************************************************************
+    
+    let posCart = JSON.parse(localStorage.getItem('posCart')) || [];
+    
+    function updatePOSCartDisplay() {
 
-        fetch(url, {
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-        })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => { throw new Error(err.error || 'Stok tidak mencukupi atau produk tidak ada'); });
+        const cartContainer = document.getElementById('pos-cart-items');
+        
+        if (!cartContainer) {
+            return;
+        }
+        
+        // Calculate total
+        const total = posCart.reduce((sum, item) => sum + (item.harga * item.quantity), 0);
+        
+        // Update mobile cart count
+        const mobileCartCount = document.getElementById('mobile-cart-count');
+        if (mobileCartCount) {
+            mobileCartCount.textContent = posCart.length;
+        }
+        
+        // Ensure mobile cart button remains clickable
+        const mobileCartButton = document.querySelector('button[onclick="toggleMobileCart()"]');
+        if (mobileCartButton) {
+            mobileCartButton.style.pointerEvents = 'auto';
+            mobileCartButton.style.zIndex = '20';
+        }
+        
+        // Update cart summary displays
+        const cartItemsCountEl = document.getElementById('cart-items-count');
+        const cartTotalDisplayEl = document.getElementById('cart-total-display');
+        const cartActionsEl = document.getElementById('cart-actions');
+        const emptyCartMessageEl = document.getElementById('empty-cart-message');
+        
+
+        
+        if (cartItemsCountEl) {
+            cartItemsCountEl.textContent = posCart.length + ' item(s)';
+        }
+        if (cartTotalDisplayEl) {
+            cartTotalDisplayEl.textContent = 'Rp ' + total.toLocaleString('id-ID');
+        }
+        
+        // Show/hide elements based on cart state
+        if (posCart.length === 0) {
+            if (cartActionsEl) cartActionsEl.style.display = 'none';
+            if (emptyCartMessageEl) emptyCartMessageEl.style.display = 'block';
+            
+            cartContainer.innerHTML = `
+                <div class="text-center py-4 text-gray-400">
+                    <svg class="w-10 h-10 mx-auto mb-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                    <p class="text-xs">Keranjang kosong</p>
+                    <p class="text-xs mt-1 opacity-75">Klik menu</p>
+                </div>
+            `;
+        } else {
+            if (cartActionsEl) cartActionsEl.style.display = 'block';
+            if (emptyCartMessageEl) emptyCartMessageEl.style.display = 'none';
+            
+            cartContainer.innerHTML = posCart.map(item => `
+                <div class="bg-gray-700 rounded-lg p-2 mb-2 mx-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-2">
+                        <img src="${item.foto}" alt="${item.nama}" class="w-8 h-8 object-cover rounded flex-shrink-0">
+                        <div class="flex-1 min-w-0 overflow-hidden">
+                            <h4 class="text-xs font-medium text-white truncate">${item.nama}</h4>
+                            <p class="text-xs text-gray-300">Rp ${item.harga.toLocaleString('id-ID')}</p>
+                        </div>
+                        <button onclick="removePOSItem(${item.id})" class="text-red-400 hover:text-red-300 hover:bg-red-900/30 w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 transition-colors">
+                            ✕
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-1">
+                            <button onclick="updatePOSItemQuantity(${item.id}, -1)" 
+                                class="w-6 h-6 flex items-center justify-center bg-gray-600 hover:bg-gray-500 rounded text-white transition-colors text-sm font-bold">
+                                −
+                            </button>
+                            <span class="w-8 text-center text-xs font-bold text-white">${item.quantity}</span>
+                            <button onclick="updatePOSItemQuantity(${item.id}, 1)" 
+                                class="w-6 h-6 flex items-center justify-center bg-gray-600 hover:bg-gray-500 rounded text-white transition-colors text-sm font-bold">
+                                +
+                            </button>
+                        </div>
+                        <div class="text-right ml-2">
+                            <p class="text-xs font-bold text-orange-400">Rp ${(item.harga * item.quantity).toLocaleString('id-ID')}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Save to localStorage
+        localStorage.setItem('posCart', JSON.stringify(posCart));
+    }
+    
+    function addToPOSCart(produkId, nama, harga, foto, stok) {
+        const existingItem = posCart.find(item => item.id === produkId);
+        
+        if (existingItem) {
+            if (existingItem.quantity < stok) {
+                existingItem.quantity += 1;
+                
+                // Sync quantity update to server immediately
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || null;
+                fetch(`{{ url('user/cart/add') }}/${produkId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ quantity: existingItem.quantity })
+                }).then(() => {
+                    Swal.fire({ 
+                        ...getSwalTheme(), 
+                        title: 'Ditambahkan!', 
+                        text: `${nama} ditambahkan ke keranjang`, 
+                        icon: 'success', 
+                        toast: true, 
+                        position: 'top-end', 
+                        showConfirmButton: false, 
+                        timer: 2000 
+                    });
+                }).catch(error => {
+                    console.error('Failed to sync quantity to server:', error);
+                    // Revert quantity on failure
+                    existingItem.quantity -= 1;
+                    updatePOSCartDisplay();
+                    Swal.fire({ 
+                        ...getSwalTheme(), 
+                        title: 'Error!', 
+                        text: 'Gagal menambahkan ke keranjang server', 
+                        icon: 'error', 
+                        toast: true, 
+                        position: 'top-end', 
+                        showConfirmButton: false, 
+                        timer: 3000 
+                    });
+                });
+            } else {
+                Swal.fire({ 
+                    ...getSwalTheme(), 
+                    title: 'Stok Tidak Mencukupi!', 
+                    text: `Stok ${nama} Tidak Mencukupi`, 
+                    icon: 'warning', 
+                    toast: true, 
+                    position: 'top-end', 
+                    showConfirmButton: false, 
+                    timer: 3000 
+                });
+                return;
             }
-            return response.json(); 
-        })
-        .then(data => {
-            if (data.message) {
-                Swal.fire({ ...getSwalTheme(), title: 'Berhasil!', text: data.message, icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+        } else {
+            posCart.push({
+                id: produkId,
+                nama: nama,
+                harga: harga,
+                foto: foto,
+                quantity: 1,
+                stok: stok
+            });
+            
+            // Sync new item to server immediately
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || null;
+            fetch(`{{ url('user/cart/add') }}/${produkId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ quantity: 1 })
+            }).then(() => {
+                Swal.fire({ 
+                    ...getSwalTheme(), 
+                    title: 'Ditambahkan!', 
+                    text: `${nama} ditambahkan ke keranjang`, 
+                    icon: 'success', 
+                    toast: true, 
+                    position: 'top-end', 
+                    showConfirmButton: false, 
+                    timer: 2000 
+                });
+            }).catch(error => {
+                console.error('Failed to sync add to server:', error);
+                Swal.fire({ 
+                    ...getSwalTheme(), 
+                    title: 'Peringatan!', 
+                    text: `${nama} ditambahkan (sinkronisasi server gagal)`, 
+                    icon: 'warning', 
+                    toast: true, 
+                    position: 'top-end', 
+                    showConfirmButton: false, 
+                    timer: 3000 
+                });
+            });
+        }
+        
+        updatePOSCartDisplay();
+    }
+    
+    function updatePOSItemQuantity(produkId, change) {
+        const item = posCart.find(item => item.id === produkId);
+        if (!item) return;
+        
+        const newQuantity = item.quantity + change;
+        
+        if (newQuantity <= 0) {
+            removePOSItem(produkId);
+        } else if (newQuantity <= item.stok) {
+            const oldQuantity = item.quantity;
+            item.quantity = newQuantity;
+            updatePOSCartDisplay();
+            
+            // Sync quantity change to server
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || null;
+            fetch(`{{ url('user/cart/add') }}/${produkId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ quantity: newQuantity })
+            }).catch(error => {
+                console.error('Failed to sync quantity to server:', error);
+                // Revert on failure
+                item.quantity = oldQuantity;
+                updatePOSCartDisplay();
+            });
+        } else {
+            Swal.fire({ 
+                ...getSwalTheme(), 
+                title: 'Stok Terbatas!', 
+                text: `Stok ${item.nama} hanya ${item.stok} unit`, 
+                icon: 'warning', 
+                toast: true, 
+                position: 'top-end', 
+                showConfirmButton: false, 
+                timer: 3000 
+            });
+        }
+    }
+    
+    function removePOSItem(produkId) {
+        const itemIndex = posCart.findIndex(item => item.id === produkId);
+        if (itemIndex > -1) {
+            const itemName = posCart[itemIndex].nama;
+            
+            // Remove from POS cart immediately for responsive UI
+            posCart.splice(itemIndex, 1);
+            updatePOSCartDisplay();
+            
+            // Sync removal to server cart
+            syncCartItemRemoval(produkId).then(() => {
+                Swal.fire({ 
+                    ...getSwalTheme(), 
+                    title: 'Dihapus!', 
+                    text: `${itemName} dihapus dari keranjang`, 
+                    icon: 'info', 
+                    toast: true, 
+                    position: 'top-end', 
+                    showConfirmButton: false, 
+                    timer: 2000 
+                });
+            }).catch(error => {
+                console.error('Failed to sync removal to server:', error);
+                // Optional: Show warning that server sync failed
+                Swal.fire({ 
+                    ...getSwalTheme(), 
+                    title: 'Peringatan', 
+                    text: `${itemName} dihapus dari keranjang (sinkronisasi server gagal)`, 
+                    icon: 'warning', 
+                    toast: true, 
+                    position: 'top-end', 
+                    showConfirmButton: false, 
+                    timer: 3000 
+                });
+            });
+        }
+    }
+    
+    function clearPOSCart() {
+        Swal.fire({
+            ...getSwalTheme(),
+            title: 'Kosongkan Keranjang?',
+            text: 'Semua item akan dihapus dari keranjang',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Kosongkan',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#EF4444'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Clear POS cart immediately for responsive UI
+                posCart = [];
+                updatePOSCartDisplay();
+                
+                // Sync clear to server cart
+                syncCartClear().then(() => {
+                    Swal.fire({ 
+                        ...getSwalTheme(), 
+                        title: 'Dikosongkan!', 
+                        text: 'Keranjang telah dikosongkan', 
+                        icon: 'success', 
+                        toast: true, 
+                        position: 'top-end', 
+                        showConfirmButton: false, 
+                        timer: 2000 
+                    });
+                }).catch(error => {
+                    console.error('Failed to sync clear to server:', error);
+                    Swal.fire({ 
+                        ...getSwalTheme(), 
+                        title: 'Peringatan', 
+                        text: 'Keranjang dikosongkan (sinkronisasi server gagal)', 
+                        icon: 'warning', 
+                        toast: true, 
+                        position: 'top-end', 
+                        showConfirmButton: false, 
+                        timer: 3000 
+                    });
+                });
             }
-        })
-        .catch(error => {
-            Swal.fire({ ...getSwalTheme(), title: 'Oops!', text: error.message || 'Terjadi kesalahan. Silakan coba lagi.', icon: 'error', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
         });
+    }
+    
+    function autoSyncToServer() {
+        return new Promise((resolve, reject) => {
+            if (posCart.length === 0) {
+                reject('Keranjang kosong');
+                return;
+            }
+            
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || null;
+            
+            // Sync items satu per satu ke server cart
+            const syncPromises = posCart.map(item => {
+                return fetch(`{{ url('user/cart/add') }}/${item.id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ quantity: item.quantity })
+                });
+            });
+            
+            Promise.all(syncPromises)
+                .then(() => {
+                    // Don't clear POS cart immediately - let checkout process handle it
+                    // This allows cancel order to still have items in cart
+                    resolve();
+                })
+                .catch(error => {
+                    reject(error);
+                });
+        });
+    }
+    
+    function proceedToPayment() {
+        if (posCart.length === 0) {
+            Swal.fire({ 
+                ...getSwalTheme(), 
+                title: 'Keranjang Kosong!', 
+                text: 'Pilih produk terlebih dahulu', 
+                icon: 'warning', 
+                toast: true, 
+                position: 'top-end', 
+                showConfirmButton: false, 
+                timer: 2000 
+            });
+            return;
+        }
+        
+        // Show payment method selection
+        const total = posCart.reduce((sum, item) => sum + (item.harga * item.quantity), 0);
+        const itemsCount = posCart.length;
+        const itemsList = posCart.map(item => `• ${item.nama} (${item.quantity}x)`).join('<br>');
+        
+        Swal.fire({
+            ...getSwalTheme(),
+            title: 'Konfirmasi Pembayaran',
+            html: `
+                <div class="text-left mb-4">
+                    <h4 class="font-bold mb-2">Ringkasan Pesanan:</h4>
+                    <div class="bg-gray-100 dark:bg-gray-800 p-3 rounded mb-3">
+                        <div class="text-sm">
+                            ${itemsList}
+                        </div>
+                        <hr class="my-2">
+                        <div class="flex justify-between font-bold">
+                            <span>Total (${itemsCount} items):</span>
+                            <span class="text-orange-600">Rp ${total.toLocaleString('id-ID')}</span>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Masuk Ke Metode Pembayaran</p>
+                </div>
+                <div class="grid gap-3">
+                    <button onclick="selectPaymentMethod('xendit')" class="payment-method-btn bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-800 p-4 rounded-lg transition-colors">
+                        <div class="flex items-center">
+                            <span class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4zM18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z"></path>
+                                </svg>
+                            </span>
+                            <div class="text-left">
+                                <div class="font-semibold text-blue-800 dark:text-blue-200">Bayar Sekarang</div>
+                                <div class="text-sm text-blue-600 dark:text-blue-400">Bayar Langsung</div>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            `,
+            showConfirmButton: false,
+            showCancelButton: true,
+            cancelButtonText: 'Kembali',
+            width: '500px',
+            customClass: {
+                htmlContainer: 'text-left p-0'
+            }
+        });
+    }
+    
+    function selectPaymentMethod(method) {
+        Swal.close();
+        
+        if (method === 'xendit') {
+            // Handle xendit payment - auto sync then redirect
+            Swal.fire({
+                ...getSwalTheme(),
+                title: 'Menyiapkan Pembayaran...',
+                html: 'Mohon tunggu, sedang memproses pesanan...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Since cart is now synced in real-time, just proceed to checkout
+            setTimeout(() => {
+                if (posCart.length === 0) {
+                    Swal.fire({ 
+                        ...getSwalTheme(), 
+                        title: 'Keranjang Kosong!', 
+                        text: 'Pilih produk terlebih dahulu', 
+                        icon: 'warning' 
+                    });
+                    return;
+                }
+                
+                // Clear POS cart and redirect to checkout (server cart already synced)
+                posCart = [];
+                updatePOSCartDisplay();
+                window.location.href = '{{ route("user.checkout.form") }}';
+            }, 1000);
+        }
+    }
+
+    // FITUR ADD TO CART - MODIFIED FOR POS
+    function addToCart(produkId) {
+        // Get product data from the product card using data attributes
+        const productCard = document.querySelector(`[data-product-id="${produkId}"]`);
+        
+        if (productCard) {
+            const nama = productCard.dataset.productName || 'Produk';
+            const harga = parseInt(productCard.dataset.productPrice) || 0;
+            const foto = productCard.dataset.productImage || '';
+            const stok = parseInt(productCard.dataset.productStock) || 999;
+            
+            addToPOSCart(produkId, nama, harga, foto, stok);
+        } else {
+            // Fallback to original server-side add to cart
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || null;
+            let url = `{{ url('user/cart/add') }}/${produkId}`;
+
+            fetch(url, {
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.error || 'Stok tidak mencukupi atau produk tidak ada'); });
+                }
+                return response.json(); 
+            })
+            .then(data => {
+                if (data.message) {
+                    Swal.fire({ ...getSwalTheme(), title: 'Berhasil!', text: data.message, icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+                }
+            })
+            .catch(error => {
+                Swal.fire({ ...getSwalTheme(), title: 'Oops!', text: error.message || 'Terjadi kesalahan. Silakan coba lagi.', icon: 'error', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+            });
+        }
+    }
+
+    // *******************************************************************
+    // CART SYNC FUNCTIONS
+    // *******************************************************************
+    
+    function syncCartItemRemoval(produkId) {
+        return new Promise((resolve, reject) => {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || null;
+            
+            fetch(`{{ url('user/cart/remove-product') }}/${produkId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    resolve();
+                } else {
+                    reject('Failed to remove item from server cart');
+                }
+            })
+            .catch(error => {
+                reject(error);
+            });
+        });
+    }
+    
+    function syncCartClear() {
+        return new Promise((resolve, reject) => {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || null;
+            
+            fetch('{{ route("user.cart.clear") }}', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    resolve();
+                } else {
+                    reject('Failed to clear server cart');
+                }
+            })
+            .catch(error => {
+                reject(error);
+            });
+        });
+    }
+    
+    function reloadCartFromServer() {
+        return new Promise((resolve, reject) => {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || null;
+            
+            fetch('{{ route("user.cart.api") }}', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.items && Array.isArray(data.items)) {
+                    // Convert server cart items to POS cart format
+                    posCart = data.items.map(item => ({
+                        id: item.produk.id,
+                        nama: item.produk.nama,
+                        harga: item.produk.harga,
+                        foto: item.produk.foto ? `{{ asset('storage/') }}/${item.produk.foto}` : '',
+                        quantity: item.jumlah,
+                        stok: item.produk.stok || 999
+                    }));
+                    updatePOSCartDisplay();
+                    resolve(posCart.length);
+                } else {
+                    posCart = [];
+                    updatePOSCartDisplay();
+                    resolve(0);
+                }
+            })
+            .catch(error => {
+                console.error('Error reloading cart:', error);
+                reject(error);
+            });
+        });
+    }
+
+    // *******************************************************************
+    // MOBILE CART FUNCTIONS
+    // *******************************************************************
+    
+    function toggleMobileCart() {
+        const cartSidebar = document.getElementById('mobile-cart-sidebar');
+        if (cartSidebar) {
+            // Get Alpine.js component
+            const alpineComponent = Alpine.$data(cartSidebar.closest('[x-data]'));
+            if (alpineComponent) {
+                alpineComponent.showCart = !alpineComponent.showCart;
+            }
+        }
+    }
+    
+    function closeMobileCart() {
+        const cartSidebar = document.getElementById('mobile-cart-sidebar');
+        if (cartSidebar && window.innerWidth < 1024) { // Only close on mobile
+            const alpineComponent = Alpine.$data(cartSidebar.closest('[x-data]'));
+            if (alpineComponent) {
+                alpineComponent.showCart = false;
+            }
+        }
     }
 
     // *******************************************************************
@@ -600,33 +1318,119 @@
     // *******************************************************************
 
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded successfully');
         
-        // --- CHAT NOTIFICATION LOGIC - SESUAI PERSYARATAN (Contact to Admin) ---
-        const chatBadge = document.getElementById('chat-badge');
-        let lastKnownCount = parseInt(localStorage.getItem('last_unread_chat_count')) || 0;
-
-        function checkUnreadChats() {
-            fetch("{{ route('user.chat.unread.count') }}")
-                .then(response => response.json())
-                .then(data => {
-                    const count = data.count;
-                    if (count > 0) {
-                        chatBadge.textContent = count > 99 ? '99+' : count;
-                        chatBadge.classList.remove('hidden');
-                        if (count > lastKnownCount) {
-                            Swal.fire({ ...getSwalTheme(), title: 'Pesan Baru!', text: `Anda memiliki ${count} pesan yang belum dibaca dari Admin.`, icon: 'info', toast: true, position: 'top-end', showConfirmButton: false, timer: 5000, timerProgressBar: true });
-                        }
-                    } else {
-                        chatBadge.classList.add('hidden');
+        // Check if products are loaded
+        const productCards = document.querySelectorAll('.js-product-card');
+        console.log('Found product cards:', productCards.length);
+        
+        // Initialize POS Cart Display and reload from server if needed
+        setTimeout(() => {
+            // Check URL params to see if user returned from checkout
+            const urlParams = new URLSearchParams(window.location.search);
+            const fromCheckout = urlParams.get('from') === 'checkout_cancel';
+            
+            // Check if we have POS cart or need to reload from server
+            if (posCart.length === 0) {
+                reloadCartFromServer().then(itemCount => {
+                    if (itemCount > 0) {
+                        console.log(`Reloaded ${itemCount} items from server cart`);
+                        const message = fromCheckout 
+                            ? `Checkout dibatalkan. ${itemCount} item dikembalikan ke keranjang`
+                            : `${itemCount} item berhasil dimuat dari pesanan sebelumnya`;
+                        
+                        Swal.fire({ 
+                            ...getSwalTheme(), 
+                            title: 'Keranjang Dimuat!', 
+                            text: message, 
+                            icon: fromCheckout ? 'success' : 'info', 
+                            toast: true, 
+                            position: 'top-end', 
+                            showConfirmButton: false, 
+                            timer: 4000 
+                        });
+                    } else if (fromCheckout) {
+                        Swal.fire({ 
+                            ...getSwalTheme(), 
+                            title: 'Checkout Dibatalkan', 
+                            text: 'Keranjang kosong, silakan pilih menu', 
+                            icon: 'info', 
+                            toast: true, 
+                            position: 'top-end', 
+                            showConfirmButton: false, 
+                            timer: 3000 
+                        });
                     }
-                    lastKnownCount = count;
-                    localStorage.setItem('last_unread_chat_count', count);
+                    
+                    // Clean up URL
+                    if (fromCheckout) {
+                        window.history.replaceState({}, '', '{{ route("user.dashboard") }}');
+                    }
+                }).catch(error => {
+                    console.error('Failed to reload cart:', error);
+                    if (fromCheckout) {
+                        Swal.fire({ 
+                            ...getSwalTheme(), 
+                            title: 'Checkout Dibatalkan', 
+                            text: 'Gagal memuat keranjang, silakan refresh halaman', 
+                            icon: 'warning', 
+                            toast: true, 
+                            position: 'top-end', 
+                            showConfirmButton: false, 
+                            timer: 3000 
+                        });
+                        window.history.replaceState({}, '', '{{ route("user.dashboard") }}');
+                    }
                 });
-        }
-        checkUnreadChats();
-        setInterval(checkUnreadChats, 5000); 
+            } else {
+                updatePOSCartDisplay();
+                if (fromCheckout) {
+                    Swal.fire({ 
+                        ...getSwalTheme(), 
+                        title: 'Checkout Dibatalkan', 
+                        text: 'Keranjang tetap tersimpan', 
+                        icon: 'success', 
+                        toast: true, 
+                        position: 'top-end', 
+                        showConfirmButton: false, 
+                        timer: 3000 
+                    });
+                    window.history.replaceState({}, '', '{{ route("user.dashboard") }}');
+                }
+            }
+        }, 100);
+        
+        @if(config('fitur.chat'))
+        // --- CHAT NOTIFICATION LOGIC - DAPAT DIKONFIGURASI ---
+        const chatBadge = document.getElementById('chat-badge');
+        if(chatBadge) {
+            let lastKnownCount = parseInt(localStorage.getItem('last_unread_chat_count')) || 0;
 
-        // FITUR FAVORIT - TIDAK ADA DI PERSYARATAN
+            function checkUnreadChats() {
+                fetch("{{ route('user.chat.unread.count') }}")
+                    .then(response => response.json())
+                    .then(data => {
+                        const count = data.count;
+                        if (count > 0) {
+                            chatBadge.textContent = count > 99 ? '99+' : count;
+                            chatBadge.classList.remove('hidden');
+                            if (count > lastKnownCount) {
+                                Swal.fire({ ...getSwalTheme(), title: 'Pesan Baru!', text: `Anda memiliki ${count} pesan yang belum dibaca dari Admin.`, icon: 'info', toast: true, position: 'top-end', showConfirmButton: false, timer: 5000, timerProgressBar: true });
+                            }
+                        } else {
+                            chatBadge.classList.add('hidden');
+                        }
+                        lastKnownCount = count;
+                        localStorage.setItem('last_unread_chat_count', count);
+                    });
+            }
+            checkUnreadChats();
+            setInterval(checkUnreadChats, 5000); 
+        }
+        @endif
+
+        @if(config('fitur.favorit'))
+        // FITUR FAVORIT - DAPAT DIKONFIGURASI
     
         document.querySelectorAll('.btn-favorite').forEach(button => {
             button.addEventListener('click', function(e) {
@@ -646,6 +1450,7 @@
                 });
             });
         });
+        @endif
     
 
         // FITUR LIVE SEARCH AUTO-SUGGESTION - TIDAK ADA DI PERSYARATAN
@@ -672,6 +1477,17 @@
         document.addEventListener('click', function(e) {
             if (!searchInput.contains(e.target) && !searchResultsContainer.contains(e.target)) {
                 searchResultsContainer.classList.add('hidden');
+            }
+        });
+        
+        // Ensure mobile cart functionality works on touch devices
+        document.addEventListener('touchstart', function() {}, { passive: true });
+        
+        // Alternative mobile cart toggle for better compatibility
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('button[onclick="toggleMobileCart()"]')) {
+                e.preventDefault();
+                toggleMobileCart();
             }
         });
 
@@ -724,7 +1540,7 @@
                         <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
                         </svg>
-                        Tidak menemukan buku
+                        Tidak menemukan produk
                     </div>`;
                 searchResultsContainer.classList.remove('hidden');
                 return;

@@ -11,6 +11,7 @@ class Produk extends Model
 {
     use HasFactory;
 
+    protected $table = 'produks';
     protected $fillable = ['kategori_id', 'nama', 'harga', 'deskripsi', 'foto', 'stok'];
 
     public function kategori()
@@ -80,5 +81,69 @@ class Produk extends Model
     {
         // Ganti 'produk_id' jika nama kolom foreign key Anda berbeda
         return $this->hasMany(TransactionItem::class, 'produk_id');
+    }
+
+    /**
+     * Relasi: Produk <-> Toppings (many-to-many)
+     */
+    public function toppings()
+    {
+        return $this->belongsToMany(Topping::class, 'product_topping', 'produk_id', 'topping_id')->withPivot('price')->withTimestamps();
+    }
+
+    /**
+     * Relasi: Product Recipes (BOM - Bill of Materials)
+     */
+    public function recipes()
+    {
+        return $this->hasMany(ProductRecipe::class, 'product_id');
+    }
+
+    /**
+     * Hitung berapa produk yang bisa dibuat berdasarkan stok bahan baku
+     */
+    public function getMaxProductionAttribute()
+    {
+        if ($this->recipes->isEmpty()) {
+            // Jika tidak ada resep, gunakan stok produk langsung
+            return $this->stok;
+        }
+
+        // Ambil nilai minimum dari semua bahan yang dibutuhkan
+        $maxProductions = $this->recipes->map(function ($recipe) {
+            return $recipe->max_production;
+        });
+
+        return $maxProductions->min() ?? 0;
+    }
+
+    /**
+     * Cek apakah produk bisa diproduksi
+     */
+    public function canProduce($quantity = 1)
+    {
+        return $this->max_production >= $quantity;
+    }
+
+    /**
+     * Get effective stock (BOM-based or manual)
+     */
+    public function getEffectiveStockAttribute()
+    {
+        if ($this->recipes && $this->recipes->count() > 0) {
+            return $this->max_production;
+        }
+        return $this->stok;
+    }
+
+    /**
+     * Get stock type (BOM or Manual)
+     */
+    public function getStockTypeAttribute()
+    {
+        if ($this->recipes && $this->recipes->count() > 0) {
+            return 'BOM'; // Bill of Materials
+        }
+        return 'Manual';
     }
 }

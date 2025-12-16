@@ -59,4 +59,13 @@ class ProductController extends Controller
             return response()->json(['error' => 'Gagal memuat hasil pencarian dari server.'], 500);
         }
     }
+
+    /**
+     * Return toppings available for a given product (for add-to-cart UI)
+     */
+    public function toppings(\App\Models\Produk $produk)
+    {
+        $toppings = $produk->toppings()->get(['toppings.id', 'toppings.name', 'toppings.price']);
+        return response()->json($toppings);
+    }
 }

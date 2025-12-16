@@ -19,40 +19,67 @@ class CartController extends Controller
         return view('user.cart', compact('items'));
     }
 
-    public function add($id)
+    public function add(Request $request, $id)
     {
-        // 1. Find the existing cart item or create a new one.
-        $cartItem = Cart::firstOrNew([
-            'user_id' => Auth::id(),
-            'produk_id' => $id,
-        ]);
+        $toppings = $request->input('toppings', []); // array of topping ids
 
-        // 2. Load the associated Produk model to check its stock.
-        if (!$cartItem->relationLoaded('produk')) {
-             $cartItem->load('produk');
-        }
-        $product = $cartItem->produk;
-
-        // Safety check: ensure the product exists
+        // Load product to check existence and stock
+        $product = \App\Models\Produk::find($id);
         if (!$product) {
+            if ($request->wantsJson()) {
+                return response()->json(['error' => 'Produk tidak ditemukan.'], 404);
+            }
             return redirect()->back()->with('error', 'Produk tidak ditemukan.');
         }
 
-        // 3. Calculate the quantity AFTER the increment.
-        $newTotalQuantity = ($cartItem->jumlah ?? 0) + 1;
-
-        // 4. Check if the new quantity exceeds the product's stock ('stok').
-        if ($newTotalQuantity > $product->stok) {
-            $currentQuantity = $cartItem->jumlah ?? 0;
-            return redirect()->back()->with(
-                'error',
-                'Stok produk tidak mencukupi. Hanya tersedia ' . $product->stok . ' item. Anda sudah memiliki ' . $currentQuantity . ' item di keranjang.'
-            );
+        // Build a signature to uniquely identify cart item by product + toppings
+        $signature = null;
+        if (!empty($toppings) && is_array($toppings)) {
+            sort($toppings);
+            $signature = implode(',', $toppings);
         }
 
-        // 5. Increment the quantity and save the cart item.
-        $cartItem->jumlah = $newTotalQuantity;
-        $cartItem->save();
+        // Try find existing cart item for this user/product with same toppings signature
+        $existingQuery = Cart::where('user_id', Auth::id())->where('produk_id', $id);
+        if ($signature) {
+            $existingQuery = $existingQuery->whereJsonContains('toppings', $toppings);
+        } else {
+            $existingQuery = $existingQuery->whereNull('toppings');
+        }
+
+        $cartItem = $existingQuery->first();
+
+        // If exists, we'll increment jumlah; else create new
+        if ($cartItem) {
+            $newTotalQuantity = ($cartItem->jumlah ?? 0) + 1;
+            if ($newTotalQuantity > $product->stok) {
+                if ($request->wantsJson()) {
+                    return response()->json(['error' => 'Stok produk tidak mencukupi.'], 422);
+                }
+                return redirect()->back()->with('error', 'Stok produk tidak mencukupi.');
+            }
+            $cartItem->jumlah = $newTotalQuantity;
+            $cartItem->save();
+        } else {
+            // Create new cart item
+            if ($product->stok < 1) {
+                if ($request->wantsJson()) {
+                    return response()->json(['error' => 'Stok produk habis.'], 422);
+                }
+                return redirect()->back()->with('error', 'Stok produk habis.');
+            }
+
+            $cartItem = Cart::create([
+                'user_id' => Auth::id(),
+                'produk_id' => $id,
+                'jumlah' => 1,
+                'toppings' => !empty($toppings) ? $toppings : null,
+            ]);
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Produk berhasil ditambahkan ke keranjang!']);
+        }
 
         return redirect()->back()->with('success', 'Produk berhasil ditambahkan ke keranjang!');
     }
@@ -90,5 +117,129 @@ class CartController extends Controller
         }
 
         return redirect()->back();
+    }
+
+    /**
+     * API method untuk mendapatkan data keranjang untuk POS
+     */
+    public function getCartApi()
+    {
+        $items = Cart::with(['produk' => function($query) {
+                $query->select('id', 'nama', 'harga', 'foto', 'stok');
+            }])
+            ->where('user_id', Auth::id())
+            ->get();
+
+        $total = 0;
+        $cartData = [];
+
+        foreach ($items as $item) {
+            $itemSubtotal = ($item->produk->harga ?? 0) * $item->jumlah;
+            
+            // Get selected toppings
+            $selectedToppings = $item->getSelectedToppings();
+            
+            // Add topping price
+            if ($selectedToppings->count() > 0) {
+                $toppingTotal = $selectedToppings->sum('price') * $item->jumlah;
+                $itemSubtotal += $toppingTotal;
+            }
+            
+            $cartData[] = [
+                'id' => $item->id,
+                'produk' => [
+                    'id' => $item->produk->id,
+                    'nama' => $item->produk->nama,
+                    'harga' => $item->produk->harga,
+                    'foto' => $item->produk->foto,
+                    'stok' => $item->produk->stok
+                ],
+                'jumlah' => $item->jumlah,
+                'toppings' => $selectedToppings->map(function($topping) {
+                    return [
+                        'id' => $topping->id,
+                        'name' => $topping->name,
+                        'price' => $topping->price
+                    ];
+                }),
+                'subtotal' => $itemSubtotal
+            ];
+            
+            $total += $itemSubtotal;
+        }
+
+        return response()->json([
+            'items' => $cartData,
+            'total' => $total,
+            'count' => count($cartData)
+        ]);
+    }
+
+    /**
+     * Update quantity item di keranjang via API
+     */
+    public function updateQuantity(Request $request, $id)
+    {
+        $item = Cart::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        $newQuantity = $request->input('jumlah');
+        
+        if ($newQuantity < 1) {
+            return response()->json(['success' => false, 'message' => 'Quantity tidak valid']);
+        }
+
+        if ($newQuantity > $item->produk->stok) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Stok tidak mencukupi. Maksimal ' . $item->produk->stok . ' item.'
+            ]);
+        }
+
+        $item->jumlah = $newQuantity;
+        $item->save();
+
+        return response()->json(['success' => true, 'message' => 'Quantity berhasil diupdate']);
+    }
+
+    /**
+     * Hapus item dari keranjang via API
+     */
+    public function removeItem($id)
+    {
+        $item = Cart::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        $item->delete();
+
+        return response()->json(['success' => true, 'message' => 'Item berhasil dihapus']);
+    }
+
+    /**
+     * Hapus item berdasarkan produk ID via API
+     */
+    public function removeByProductId($produkId)
+    {
+        $deleted = Cart::where('user_id', Auth::id())
+            ->where('produk_id', $produkId)
+            ->delete();
+
+        if ($deleted) {
+            return response()->json(['success' => true, 'message' => 'Item berhasil dihapus dari keranjang']);
+        } else {
+            return response()->json(['success' => false, 'message' => 'Item tidak ditemukan'], 404);
+        }
+    }
+
+    /**
+     * Kosongkan seluruh keranjang via API
+     */
+    public function clearCart()
+    {
+        Cart::where('user_id', Auth::id())->delete();
+
+        return response()->json(['success' => true, 'message' => 'Keranjang berhasil dikosongkan']);
     }
 }

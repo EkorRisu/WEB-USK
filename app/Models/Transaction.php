@@ -11,13 +11,18 @@ class Transaction extends Model
         'status',
         'bukti_bayar',
         'alamat',
-        'nomor_hp',
         'metode_pembayaran',
         'total',
         // pesan_admin ada di migrasi sebagai kolom yang menyimpan catatan admin
         'pesan_admin',
         // tambahkan 'note' supaya controller yang menggunakan 'note' bisa mass assign
         'note',
+        'order_type',
+        'table_number',
+        'customer_name',
+        // Cash payment fields
+        'cash_amount',
+        'change_amount',
     ];
 
     public function user()

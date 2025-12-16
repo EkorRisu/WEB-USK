@@ -16,7 +16,7 @@ class UserDashboardController extends Controller
         // 1. Ambil input filter
         $search = $request->input('search');
         $kategoriId = $request->input('kategori');
-        $perPage = $request->input('perpage', 12); // Ganti default jadi 12
+        $perPage = $request->input('perpage', 20); // Default 20 items per page
         $sortBy = $request->input('sort_by', 'created_at_desc');
 
         // 2. Mulai Query Produk

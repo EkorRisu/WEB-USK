@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>AzurBook</title>
+    <title>AzurCoffee</title>
 
     {{-- 2. HAPUS SCRIPT TAILWIND CDN --}}
 
@@ -21,6 +21,8 @@
 
     {{-- 4. UBAH PATH VITE KE app.css (PERBAIKAN UTAMA) --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
 
     {{-- DEFAULT MODE: GELAP (DARK MODE) --}}
     <script>
@@ -118,11 +120,11 @@
         <div id="app">
 
             {{-- 7. Modifikasi Navbar agar support light/dark --}}
-            <nav class="bg-white dark:bg-black fixed top-0 left-0 w-full z-50 shadow dark:shadow-gray-700">
+            <nav class="bg-yellow-800 dark:bg-gray-900 fixed w-full z-50 shadow dark:shadow-gray-700">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="flex justify-between items-center h-16">
-                        <a href="/" class="text-black dark:text-white font-bold text-lg">
-                            Azur BookStore
+                        <a href="/" class="flex items-center">
+                            <img src="{{ asset('images/lgo.png') }}" alt="AzurCoffee" class="h-10 w-auto" loading="eager" decoding="async">
                         </a>
 
                         @if (Route::has('login'))
@@ -133,6 +135,7 @@
                             <div class="flex items-center space-x-2">
 
                                 {{-- Tombol Toggle Dark Mode --}}
+                                @if(config('fitur.dark_mode'))
                                 <button @click="isDark = !isDark; localStorage.setItem('dark', isDark)" type="button"
                                     class="p-2 rounded-full text-gray-800 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none">
                                     <svg x-show="!isDark" class="w-6 h-6" fill="none" stroke="currentColor"
@@ -148,13 +151,15 @@
                                         </path>
                                     </svg>
                                 </button>
+                                @endif
 
 
 
                                 {{-- 🌐 ICON TRANSLATOR DAN WIDGET 🌐 --}}
-                                <div class="flex items-center relative hidden sm:flex">
-                                    {{-- Ikon Globe SVG (Dasar) --}}
-                                    <svg class="w-5 h-5 text-gray-800 dark:text-gray-300 absolute left-0 z-10 pointer-events-none"
+                                @if(config('fitur.translate'))
+                                    <div class="flex items-center relative hidden sm:flex">
+                                        {{-- Ikon Globe SVG (Dasar) --}}
+                                        <svg class="w-5 h-5 text-gray-800 dark:text-gray-300 absolute left-0 z-10 pointer-events-none"
                                         fill="none" stroke="currentColor" viewBox="0 0 24 24"
                                         xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -165,7 +170,7 @@
                                     {{-- Margin negatif untuk menempatkan dropdown di atas ikon --}}
                                     <div id="google_translate_element" class="text-sm -ml-2"></div>
                                 </div>
-
+                                @endif
                             </div>
 
                             {{-- 🛑 END: CONTAINER NAVIGASI KANAN 🛑 --}}
@@ -272,6 +277,15 @@
                                 {{ __('app.login') }}
                             </button>
                         </form>
+                        
+                        <div class="mt-4 text-center">
+                            <p class="text-gray-600 dark:text-gray-300">
+                                Belum punya akun? 
+                                <button onclick="switchToRegister()" class="text-yellow-600 dark:text-yellow-400 hover:underline font-semibold">
+                                    Daftar di sini
+                                </button>
+                            </p>
+                        </div>
                     </div>
                 </div>
 
@@ -330,6 +344,15 @@
                                 {{ __('app.register') }}
                             </button>
                         </form>
+                        
+                        <div class="mt-4 text-center">
+                            <p class="text-gray-600 dark:text-gray-300">
+                                Sudah punya akun? 
+                                <button onclick="switchToLogin()" class="text-yellow-600 dark:text-yellow-400 hover:underline font-semibold">
+                                    Login di sini
+                                </button>
+                            </p>
+                        </div>
                     </div>
                 </div>
 
@@ -371,6 +394,17 @@
             loginModal?.classList.remove('hidden');
         @endif
     });
+
+    // Functions to switch between login and register modals
+    function switchToRegister() {
+        document.getElementById('loginModal')?.classList.add('hidden');
+        document.getElementById('registerModal')?.classList.remove('hidden');
+    }
+
+    function switchToLogin() {
+        document.getElementById('registerModal')?.classList.add('hidden');
+        document.getElementById('loginModal')?.classList.remove('hidden');
+    }
         </script>
 
         {{-- SCRIPT GOOGLE TRANSLATE (Ditempatkan di akhir body) --}}

@@ -121,7 +121,7 @@ return [
     'show' => 'Show',
     'all_products' => 'All Products',
     'my_favorites' => 'My Favorites',
-    'details_reviews' => 'Details & Reviews',
+    'details_reviews' => 'Details',
     'out_of_stock' => 'Out of Stock',
     'no_products_found' => 'No products found for this filter.'
 ];

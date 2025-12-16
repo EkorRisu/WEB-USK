@@ -5,6 +5,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\RoleMiddleware;
 use App\Http\Middleware\SetLocale; // ⭐️ BARU: IMPORT MIDDLEWARE LOCALIZATION ⭐️
+use App\Http\Middleware\CheckPdfInvoiceFeature;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -21,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
         
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'check.pdf.feature' => \App\Http\Middleware\CheckPdfInvoiceFeature::class,
         ]);
     })
 

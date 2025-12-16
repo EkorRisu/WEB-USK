@@ -28,6 +28,15 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 // Middleware 'web' tidak berlaku di sini, jadi kita tidak perlu prefix 'user'.
 // Route::get('/search_products', [ProductController::class, 'apiSearch']); // Jika ingin menggunakan nama 'apiSearch'
 // Menggunakan nama yang lebih umum:
+
+// Route untuk mengambil produk berdasarkan kategori
+Route::get('/products/category/{categoryId}', function($categoryId) {
+    $products = \App\Models\Produk::with('kategori')
+        ->where('kategori_id', $categoryId)
+        ->where('stok', '>', 0)
+        ->get();
+    return response()->json($products);
+});
 Route::get('/search_products', [ProductController::class, 'searchApi'])->name('api.search_products');
 // CATATAN: Pastikan Anda telah mengganti nama method di ProductController dari apiSearch menjadi searchApi
 // atau sesuaikan rute ini dengan nama method yang ada di ProductController Anda (yaitu 'apiSearch').

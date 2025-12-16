@@ -101,25 +101,106 @@
                     <div class="field-hint">Set the selling price for this product</div>
                 </div>
 
+                @if(config('fitur.recipe_bom'))
+                <!-- Info BOM Stock -->
                 <div class="form-group">
-                    <label for="stok" class="form-label">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center">
+                                <span class="text-blue-600 text-lg mr-2">🧾</span>
+                                <h3 class="font-medium text-blue-800">Status Stok Produk</h3>
+                            </div>
+                            <a href="{{ route('admin.recipe.show', $produk->id) }}" 
+                               class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                Lihat Resep →
+                            </a>
+                        </div>
+                        
+                        @if($produk->recipes && $produk->recipes->count() > 0)
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div class="bg-green-100 p-3 rounded-lg">
+                                    <p class="text-green-800 font-medium">✅ Resep Tersedia</p>
+                                    <p class="text-green-700">{{ $produk->recipes->count() }} bahan baku</p>
+                                </div>
+                                <div class="bg-amber-100 p-3 rounded-lg">
+                                    <p class="text-amber-800 font-medium">📦 Dapat Diproduksi</p>
+                                    <p class="text-amber-700 font-bold">{{ $produk->max_production ?? 0 }} unit</p>
+                                </div>
+                            </div>
+                            <p class="text-blue-700 text-xs mt-3">
+                                🎯 Stok dihitung otomatis berdasarkan ketersediaan bahan baku
+                            </p>
+                        @else
+                            <div class="bg-red-100 p-3 rounded-lg text-sm">
+                                <p class="text-red-800 font-medium">⚠️ Belum Ada Resep</p>
+                                <p class="text-red-700">Tambahkan resep untuk aktivasi sistem stok otomatis</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+                @else
+                <!-- Stock Input -->
+                <div class="form-group">
+                    <label for="stok" class="form-label required">
                         <span class="label-icon">📦</span>
-                        Stock
+                        Stock Quantity
                     </label>
-                    <div class="input-wrapper stock-wrapper focused">
-                        <input type="number" name="stok" id="stok"
-                            class="form-input stock-input @error('stok') error @enderror"
-                            value="{{ old('stok', $produk->stok) }}" placeholder="Enter stock quantity" min="0"
-                            required>
-                        <div class="input-icon">🔢</div>
-                    </div>
+                    <input type="number" 
+                           name="stok" 
+                           id="stok" 
+                           value="{{ old('stok', $produk->stok) }}" 
+                           min="0" 
+                           step="1" 
+                           class="form-input @error('stok') error @enderror" 
+                           placeholder="Enter stock quantity">
                     @error('stok')
-                    <div class="error-message">
-                        <span class="error-icon">⚠️</span>
-                        {{ $message }}
-                    </div>
+                        <div class="field-error">{{ $message }}</div>
                     @enderror
-                    <div class="field-hint">Enter the available quantity of this product</div>
+                    <div class="field-hint">Current stock available for sale</div>
+                </div>
+                @endif
+
+                {{-- 
+                <!-- Info BOM Stock -->
+                <div class="form-group">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center">
+                                <span class="text-blue-600 text-lg mr-2">🧾</span>
+                                <h3 class="font-medium text-blue-800">Status Stok Produk</h3>
+                            </div>
+                            <a href="{{ route('admin.recipe.show', $produk->id) }}" 
+                               class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                Lihat Resep →
+                            </a>
+                        </div>
+                        
+                        @if($produk->recipes && $produk->recipes->count() > 0)
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div class="bg-green-100 p-3 rounded-lg">
+                                    <p class="text-green-800 font-medium">✅ Resep Tersedia</p>
+                                    <p class="text-green-700">{{ $produk->recipes->count() }} bahan baku</p>
+                                </div>
+                                <div class="bg-amber-100 p-3 rounded-lg">
+                                    <p class="text-amber-800 font-medium">📦 Dapat Diproduksi</p>
+                                    <p class="text-amber-700 font-bold">{{ $produk->max_production ?? 0 }} unit</p>
+                                </div>
+                            </div>
+                            <p class="text-blue-700 text-xs mt-3">
+                                🎯 Stok dihitung otomatis berdasarkan ketersediaan bahan baku
+                            </p>
+                        @else
+                            <div class="bg-red-50 p-3 rounded-lg">
+                                <p class="text-red-800 font-medium">⚠️ Belum Ada Resep</p>
+                                <p class="text-red-700 text-sm">Stok manual: {{ $produk->stok }} unit</p>
+                                <p class="text-red-600 text-xs mt-1">
+                                    Tambahkan resep untuk mengaktifkan sistem stok otomatis
+                                </p>
+                            </div>
+                        @endif
+                    </div>
+                    <!-- Hidden input untuk mempertahankan stok existing jika belum ada resep -->
+                    <input type="hidden" name="stok" value="{{ $produk->stok }}">
                 </div>
                 
                 {{-- ⭐ PERBAIKAN DAN PENAMBAHAN FIELD DESKRIPSI ⭐ --}}

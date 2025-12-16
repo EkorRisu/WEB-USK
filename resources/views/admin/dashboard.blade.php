@@ -3,35 +3,38 @@
 @section('content')
 
 {{-- Class admin-dashboard tidak perlu warna karena dihandle oleh body di app.css --}}
-<div class="admin-dashboard p-8 min-h-screen dark:bg-gray-800 bg-white" 
+<div class="admin-dashboard p-8 min-h-screen dark:bg-gray-800 bg-yellow-50" 
     style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;">
+    @if(config('fitur.card_review'))
+        
     
     <div class="stats-bar grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         
         {{-- Card Total Users --}}
-        <div class="stat-item bg-white dark:bg-gray-800 shadow-xl rounded-xl p-6 transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] border border-gray-200 dark:border-gray-700">
-            <div class="stat-value text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1 transition-transform duration-300">
+        <div class="stat-item bg-yellow-100 dark:bg-gray-800 shadow-xl rounded-xl p-6 transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] border border-yellow-200 dark:border-gray-700">
+            <div class="stat-value text-3xl font-bold text-yellow-800 dark:text-yellow-400 mb-1 transition-transform duration-300">
                 {{ $userCount ?? '...' }}
             </div>
             <div class="stat-label text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Users</div>
         </div>
         
         {{-- Card Total Products --}}
-        <div class="stat-item bg-white dark:bg-gray-800 shadow-xl rounded-xl p-6 transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] border border-gray-200 dark:border-gray-700">
-            <div class="stat-value text-3xl font-bold text-green-600 dark:text-green-400 mb-1 transition-transform duration-300">
+        <div class="stat-item bg-yellow-100 dark:bg-gray-800 shadow-xl rounded-xl p-6 transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] border border-yellow-200 dark:border-gray-700">
+            <div class="stat-value text-3xl font-bold text-yellow-700 dark:text-yellow-300 mb-1 transition-transform duration-300">
                 {{ $bookCount ?? '...' }}
             </div>
-            <div class="stat-label text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Products</div>
+            <div class="stat-label text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Menu</div>
         </div>
         
         {{-- Card Total Transactions --}}
-        <div class="stat-item bg-white dark:bg-gray-800 shadow-xl rounded-xl p-6 transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] border border-gray-200 dark:border-gray-700">
-            <div class="stat-value text-3xl font-bold text-yellow-600 dark:text-yellow-400 mb-1 transition-transform duration-300">
+        <div class="stat-item bg-yellow-100 dark:bg-gray-800 shadow-xl rounded-xl p-6 transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] border border-yellow-200 dark:border-gray-700">
+            <div class="stat-value text-3xl font-bold text-yellow-900 dark:text-yellow-200 mb-1 transition-transform duration-300">
                 {{ $transactionCount ?? '...' }}
             </div>
             <div class="stat-label text-sm text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Transactions</div>
         </div>
     </div>
+    @endif
 
     <div class="welcome-section flex justify-between items-center mb-8 p-6 md:p-8 rounded-xl backdrop-blur-md transition-colors duration-500 
          bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
@@ -44,7 +47,10 @@
     <div class="main-grid grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {{-- Primary Column (User & Product) --}}
+        
+
         <div class="primary-column lg:col-span-2 space-y-4">
+        @if(config('user_management'))
             <a href="{{ route('admin.users.index') }}" 
                 class="primary-card users-card block p-6 md:p-8 rounded-2xl shadow-lg transition-all duration-400 hover:shadow-2xl hover:translate-y-[-4px] 
                        bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 dark:hover:border-blue-500">
@@ -58,6 +64,7 @@
                     <p class="text-base text-gray-600 dark:text-gray-400">Manage user accounts, permissions, and access levels</p>
                 </div>
             </a>
+         @endif
 
             <a href="{{ route('admin.produk.index') }}" 
                 class="primary-card products-card block p-6 md:p-8 rounded-2xl shadow-lg transition-all duration-400 hover:shadow-2xl hover:translate-y-[-4px] 
@@ -69,9 +76,35 @@
                             Updated</div>
                     </div>
                     <h3 class="text-xl md:text-2xl font-bold mb-1 text-gray-900 dark:text-white">Product Catalog</h3>
-                    <p class="text-base text-gray-600 dark:text-gray-400">Add, edit, and organize your product inventory</p>
+                    <p class="text-base text-gray-600 dark:text-gray-400">Add, edit, and manage your product catalog with simple stock system</p>
                 </div>
             </a>
+
+            @if(config('fitur.raw_management'))
+            <a href="{{ route('admin.inventory.index') }}" 
+                class="secondary-card flex items-center gap-4 p-4 rounded-xl shadow-md transition-all duration-300 hover:scale-[1.03] 
+                       bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 dark:hover:border-green-500">
+                <div class="text-2xl text-gray-900 dark:text-white">📦</div>
+                <div class="flex-grow">
+                    <h4 class="text-base font-semibold text-gray-900 dark:text-white">Raw Stock Management</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Manage raw materials & stock</p>
+                </div>
+                <div class="text-xl text-green-500">→</div>
+            </a>
+            @endif
+
+            @if(config('fitur.recipe_bom'))
+            <a href="{{ route('admin.recipe.index') }}" 
+                class="secondary-card flex items-center gap-4 p-4 rounded-xl shadow-md transition-all duration-300 hover:scale-[1.03] 
+                       bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 dark:hover:border-amber-500">
+                <div class="text-2xl text-gray-900 dark:text-white">🧾</div>
+                <div class="flex-grow">
+                    <h4 class="text-base font-semibold text-gray-900 dark:text-white">Product Recipes (BOM)</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Manage product recipes & materials</p>
+                </div>
+                <div class="text-xl text-amber-500">→</div>
+            </a>
+            @endif
         </div>
 
         {{-- Secondary Column (Categories, Orders, Chat) --}}
@@ -88,6 +121,22 @@
                 <div class="text-xl text-blue-500">→</div>
             </a>
 
+            @if(config('fitur.topping_management'))
+            <a href="{{ route('admin.topping.index') }}" 
+                class="secondary-card flex items-center gap-4 p-4 rounded-xl shadow-md transition-all duration-300 hover:scale-[1.03] 
+                       bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 dark:hover:border-yellow-500">
+                <div class="text-2xl text-gray-900 dark:text-white">🧊</div>
+                <div class="flex-grow">
+                    <h4 class="text-base font-semibold text-gray-900 dark:text-white">Topping Management</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Manage coffee toppings</p>
+                </div>
+                <div class="text-xl text-yellow-500">→</div>
+            </a>
+            @endif
+
+           
+            @if(config('fitur.konfirmasi'))
+                
             <a href="{{ route('admin.transactions.index') }}" 
                 class="secondary-card urgent flex items-center gap-4 p-4 rounded-xl shadow-md transition-all duration-300 hover:scale-[1.03] 
                        bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 dark:hover:border-red-500">
@@ -98,7 +147,11 @@
                 </div>
                 <div class="text-xl text-red-500">→</div>
             </a>
+            @endif
 
+            @if(config('fitur.chat'))
+                
+            
             <a href="{{ route('admin.chat') }}" 
                 class="secondary-card chat-card flex items-center gap-4 p-4 rounded-xl shadow-md transition-all duration-300 hover:scale-[1.03] 
                        bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 dark:hover:border-blue-500">
@@ -114,6 +167,7 @@
                 </div>
                 <div class="text-xl text-blue-500">→</div>
             </a>
+            @endif
         </div>
     </div>
 </div>

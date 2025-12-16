@@ -8,13 +8,13 @@
     selectedRating: null, // Digunakan untuk menyimpan rating yang dipilih
     selectedReviewText: ''
 }" 
-class="bg-gray-900 min-h-screen py-8">
+class="bg-yellow-50 dark:bg-gray-900 min-h-screen py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-    <h2 class="text-3xl font-extrabold text-white mb-8 text-center">📦 {{ __('app.transactions') }}</h2>
+    <h2 class="text-3xl font-extrabold text-yellow-900 dark:text-yellow-100 mb-8 text-center">☕ {{ __('app.transactions') }}</h2>
 
         @forelse($transaksi as $trx)
-        <div class="bg-gray-800 rounded-lg shadow-xl mb-6 border-l-4
+        <div class="bg-yellow-100 dark:bg-gray-800 rounded-lg shadow-xl mb-6 border-l-4
             @if($trx->status === 'pending') border-yellow-500 
             @elseif($trx->status === 'dikirim') border-blue-500 
             @elseif($trx->status === 'selesai') border-green-500 
@@ -73,7 +73,7 @@ class="bg-gray-900 min-h-screen py-8">
                                     Rp {{ number_format($item->harga * $item->jumlah, 0, ',', '.') }}
                                 </div>
 
-                                @if ($trx->status === 'selesai')
+                                @if ($trx->status === 'selesai' && config('fitur.review'))
                                     @php
                                         $existingReview = $item->review;
                                     @endphp
@@ -113,11 +113,29 @@ class="bg-gray-900 min-h-screen py-8">
                     </div>
                 </div>
 
-                <div class="mt-6 pt-4 border-t border-gray-700 flex justify-between items-center">
-                    <p class="text-md font-semibold text-gray-300">{{ __('app.total_payment') }}:</p>
-                    <p class="text-2xl font-bold text-green-400">
-                        Rp {{ number_format($trx->total, 0, ',', '.') }}
-                    </p>
+                <div class="mt-6 pt-4 border-t border-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <p class="text-md font-semibold text-gray-300">{{ __('app.total_payment') }}:</p>
+                        <p class="text-2xl font-bold text-green-400">
+                            Rp {{ number_format($trx->total, 0, ',', '.') }}
+                        </p>
+                    </div>
+                    
+                    {{-- Action buttons for paid transactions --}}
+                    @if($trx->status === 'paid' || $trx->metode_pembayaran)
+                        <div class="flex gap-3">
+                            <a href="{{ route('user.transaction.receipt', $trx->id) }}" 
+                               class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition font-semibold shadow-md flex items-center gap-2">
+                                🧾 Lihat Struk Digital
+                            </a>
+                            @if(config('fitur.pdf_invoice'))
+                                <a href="{{ route('user.transaction.download', $trx->id) }}" 
+                                   class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition font-semibold shadow-md flex items-center gap-2">
+                                    📄 Download PDF
+                                </a>
+                            @endif
+                        </div>
+                    @endif
                 </div>
                 {{-- Tampilkan pesan/admin note jika ada --}}
                 @if(!empty($trx->note) || !empty($trx->pesan_admin))

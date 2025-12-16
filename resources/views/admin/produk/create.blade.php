@@ -9,7 +9,7 @@
                     <span class="title-icon">➕</span>
                     Add New Product
                 </h1>
-                <p class="page-subtitle">Create a new product to expand your inventory</p>
+                <p class="page-subtitle">Create a new product to expand your catalog</p>
             </div>
             <div class="breadcrumb-nav">
                 <span class="breadcrumb-item">Products</span>
@@ -100,24 +100,67 @@
                     <div class="field-hint">Set the selling price for this product</div>
                 </div>
 
+                @if(config('fitur.recipe_bom'))
+                <!-- Info BOM Stock -->
                 <div class="form-group">
-                    <label for="stok" class="form-label">
-                        <span class="label-icon">📦</span>
-                        Stock
-                    </label>
-                    <div class="input-wrapper">
-                        <input type="number" name="stok" id="stok" class="form-input @error('stok') error @enderror"
-                            value="{{ old('stok', 0) }}" placeholder="Enter stock quantity" min="0" required>
-                        <div class="input-icon">🔢</div>
+                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <span class="text-amber-600 text-lg mr-2">🧾</span>
+                            <h3 class="font-medium text-amber-800">Informasi Stok Otomatis</h3>
+                        </div>
+                        <p class="text-amber-700 text-sm">
+                            Stok produk akan dihitung secara otomatis berdasarkan <strong>resep (Bill of Materials)</strong> 
+                            dan ketersediaan bahan baku di inventory.
+                        </p>
+                        <p class="text-amber-600 text-xs mt-2">
+                            💡 Setelah produk dibuat, tambahkan resep di menu "Product Recipes (BOM)" untuk aktivasi sistem stok otomatis.
+                        </p>
                     </div>
-                    @error('stok')
-                    <div class="error-message">
-                        <span class="error-icon">⚠️</span>
-                        {{ $message }}
-                    </div>
-                    @enderror
-                    <div class="field-hint">Enter the available quantity of this product</div>
+                    <!-- Hidden input untuk stok default -->
+                    <input type="hidden" name="stok" value="0">
                 </div>
+                @else
+                <!-- Stock Input -->
+                <div class="form-group">
+                    <label for="stok" class="form-label required">
+                        <span class="label-icon">📦</span>
+                        Stock Quantity
+                    </label>
+                    <input type="number" 
+                           name="stok" 
+                           id="stok" 
+                           value="{{ old('stok', 0) }}" 
+                           min="0" 
+                           step="1" 
+                           class="form-input @error('stok') error @enderror" 
+                           placeholder="Enter initial stock quantity">
+                    @error('stok')
+                        <div class="field-error">{{ $message }}</div>
+                    @enderror
+                    <div class="field-hint">Set the initial stock quantity for this product</div>
+                </div>
+                @endif
+
+                {{--
+                <!-- Info BOM Stock -->
+                <div class="form-group">
+                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                        <div class="flex items-center mb-2">
+                            <span class="text-amber-600 text-lg mr-2">🧾</span>
+                            <h3 class="font-medium text-amber-800">Informasi Stok Otomatis</h3>
+                        </div>
+                        <p class="text-amber-700 text-sm">
+                            Stok produk akan dihitung secara otomatis berdasarkan <strong>resep (Bill of Materials)</strong> 
+                            dan ketersediaan bahan baku di inventory.
+                        </p>
+                        <p class="text-amber-600 text-xs mt-2">
+                            💡 Setelah produk dibuat, tambahkan resep di menu "Product Recipes (BOM)" untuk aktivasi sistem stok otomatis.
+                        </p>
+                    </div>
+                    <!-- Hidden input untuk stok default -->
+                    <input type="hidden" name="stok" value="0">
+                </div>
+                --}}
 
                 <div class="form-group">
                     <label for="deskripsi" class="form-label">
@@ -217,7 +260,7 @@
                 const nameInput = document.getElementById('nama');
                 const categorySelect = document.getElementById('kategori_id');
                 const priceInput = document.getElementById('harga');
-                const stokInput = document.getElementById('stok'); // ⭐️ BARU: Mengambil input stok
+                // Stok input dihapus karena menggunakan sistem BOM
                 const deskripsiInput = document.getElementById('deskripsi'); // ⭐️ BARU: Mengambil input deskripsi
                 const fileInput = document.getElementById('foto');
                 const dropZone = document.getElementById('dropZone');
@@ -286,7 +329,7 @@
 
                 nameInput.addEventListener('input', updateProgress);
                 categorySelect.addEventListener('change', updateProgress);
-                stokInput.addEventListener('input', updateProgress); // ⭐️ BARU: Tambahkan event listener stok
+                // Event listener stok dihapus karena menggunakan sistem BOM
                 deskripsiInput.addEventListener('input', updateProgress); // ⭐️ BARU: Tambahkan event listener deskripsi
 
                 // File upload handling

@@ -10,15 +10,15 @@
         <div class="header-content">
             <div class="header-info">
                 <h1 class="page-title">
-                    <span class="title-icon">📚</span>
-                    Category Management
+                    <span class="title-icon">☕</span>
+                    Kategori Menu
                 </h1>
-                <p class="page-subtitle">Manage book categories and organize your inventory efficiently</p>
+                <p class="page-subtitle">Kelola kategori menu kopi dan atur inventaris dengan efisien</p>
             </div>
             <div class="header-stats">
                 <div class="stat-card">
                     <div class="stat-value">{{ $kategoris->count() }}</div>
-                    <div class="stat-label">Total Categories</div>
+                    <div class="stat-label">Total Kategori</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value">{{ $kategoris->where('foto', '!=', null)->count() }}</div>
@@ -394,23 +394,25 @@
         font-size: 0.9rem;
     }
 
-    /* Categories Grid */
+    /* Categories Grid - Horizontal Layout */
     .categories-container {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
     }
 
-    /* Category Card jadi horizontal list */
+    /* Category Card - Grid Style */
     .category-card {
         display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        padding: 1rem 1.5rem;
+        flex-direction: column;
+        padding: 1.5rem;
         background: rgba(255, 255, 255, 0.95);
-        border-radius: 12px;
+        border-radius: 16px;
         border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
+        min-height: 200px;
     }
 
     .category-card:hover {
@@ -419,17 +421,18 @@
 
     .card-header {
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end;
         align-items: center;
-        padding: 1rem 1.5rem;
-        background: linear-gradient(135deg, #f8fafc, #e2e8f0);
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        margin-bottom: 1rem;
     }
 
     .category-number {
         font-weight: 700;
         color: #667eea;
-        font-size: 1.1rem;
+        font-size: 0.875rem;
+        background: rgba(102, 126, 234, 0.1);
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
     }
 
     .card-menu {
@@ -563,27 +566,34 @@
     }
 
     .card-content {
-        padding: 1.5rem;
+        flex: 1;
+        padding: 0;
+        margin-bottom: 1.5rem;
     }
 
     .category-name {
         font-size: 1.25rem;
-        font-weight: 600;
+        font-weight: 700;
         color: #1f2937;
-        margin: 0 0 0.5rem 0;
+        margin: 0 0 0.75rem 0;
+        line-height: 1.3;
     }
 
     .category-description {
         color: #6b7280;
-        font-size: 0.9rem;
-        line-height: 1.5;
+        font-size: 0.875rem;
+        line-height: 1.6;
         margin: 0;
     }
 
     .card-actions {
-        padding: 0 1.5rem 1rem 1.5rem;
         display: flex;
         gap: 0.75rem;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        padding-top: 1rem;
+        border-top: 1px solid #f3f4f6;
     }
 
     .action-btn-small {
@@ -770,9 +780,20 @@
     }
 
     /* Responsive Design */
+    @media (max-width: 1200px) {
+        .categories-container {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+    }
+
     @media (max-width: 768px) {
         .category-management {
             padding: 1rem;
+        }
+
+        .categories-container {
+            grid-template-columns: 1fr;
+            gap: 1rem;
         }
 
         .header-content {
@@ -801,6 +822,7 @@
 
         .categories-container {
             grid-template-columns: 1fr;
+            gap: 1rem;
         }
 
         .card-actions {

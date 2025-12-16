@@ -16,15 +16,19 @@
             <div class="header-content flex flex-wrap justify-between items-center gap-4">
                 <div class="header-info">
                     <h1 class="page-title text-3xl font-extrabold">
-                        <span class="title-icon">📋</span>
-                        Transaction Management
+                        <span class="title-icon">☕</span>
+                        Manajemen Pesanan Coffee
                     </h1>
-                    <p class="page-subtitle">Monitor and manage all user transactions</p>
+                    <p class="page-subtitle">Pantau dan kelola semua pesanan pelanggan</p>
                 </div>
                 <div class="header-stats flex gap-3">
                     <div class="stat-card rounded-lg p-3 text-center min-w-[100px]">
                         <div class="stat-value text-xl font-bold">{{ $transactions->where('status', 'pending')->count() }}</div>
                         <div class="stat-label text-xs uppercase font-semibold">Pending</div>
+                    </div>
+                    <div class="stat-card rounded-lg p-3 text-center min-w-[100px]">
+                        <div class="stat-value text-xl font-bold">{{ $transactions->where('status', 'paid')->count() }}</div>
+                        <div class="stat-label text-xs uppercase font-semibold">Paid</div>
                     </div>
                     <div class="stat-card rounded-lg p-3 text-center min-w-[100px]">
                         <div class="stat-value text-xl font-bold">{{ $transactions->where('status', 'dikirim')->count() }}</div>
@@ -43,8 +47,10 @@
             <div class="filter-tabs flex gap-2">
                 <button class="filter-tab active px-3 py-1.5 rounded-lg text-sm font-medium" data-status="all">All Transactions</button>
                 <button class="filter-tab px-3 py-1.5 rounded-lg text-sm font-medium" data-status="pending">Pending</button>
+                <button class="filter-tab px-3 py-1.5 rounded-lg text-sm font-medium" data-status="paid">Paid</button>
                 <button class="filter-tab px-3 py-1.5 rounded-lg text-sm font-medium" data-status="dikirim">Shipped</button>
                 <button class="filter-tab px-3 py-1.5 rounded-lg text-sm font-medium" data-status="selesai">Completed</button>
+                <button class="filter-tab px-3 py-1.5 rounded-lg text-sm font-medium" data-status="dibatalkan">Cancelled</button>
             </div>
             <div class="search-box flex">
                 <input type="text" placeholder="Cari transaksi..." class="search-input p-2 rounded-l-lg">
@@ -101,6 +107,7 @@
                             <div class="status-badge status-{{ $trx->status }} px-2 py-1 rounded-full text-xs font-semibold">
                                 <span class="status-icon mr-1">
                                     @if($trx->status === 'pending') ⏳
+                                    @elseif($trx->status === 'paid') 💳
                                     @elseif($trx->status === 'dikirim') 🚚
                                     @elseif($trx->status === 'selesai') ✅
                                     @endif
@@ -120,37 +127,39 @@
                             <div class="item-details-list p-4">
                                 
                                 
-                                <div class="item-details-header grid grid-cols-5 gap-4 text-xs font-semibold uppercase pb-2 mb-2">
-                                    <div class="col-span-5">Produk</div>
-                                    <div class="col-span-2">Review Pengguna</div>
+                                <div class="item-details-header pb-3 mb-4 border-b">
+                                    <h4 class="text-sm font-semibold uppercase tracking-wide">Daftar Produk</h4>
                                 </div>
 
                                 @if (isset($trx->items) && $trx->items->count())
                                 @foreach ($trx->items as $item)
-                                <div class="item-detail-row grid grid-cols-5 gap-4 items-center py-2">
-                                    <div class="item-info col-span-5 flex items-center gap-3">
-                                        <img src="{{ $item->produk ? asset('storage/' . $item->produk->foto) : 'https://via.placeholder.com/60' }}" alt="{{ $item->nama_barang }}" class="item-image w-10 h-10 object-cover rounded-md shrink-0">
-                                        <div>
-                                            <div class="item-name font-medium text-sm">{{ $item->nama_barang }}</div>
-                                            <div class="item-meta text-xs">
-                                                <span>{{ $item->jumlah }}x</span> | <span>Rp {{ number_format($item->harga, 0, ',', '.') }}</span>
+                                <div class="item-detail-row border-b border-gray-200 dark:border-gray-600 py-3 last:border-b-0">
+                                    <div class="item-info flex items-start gap-4">
+                                        <img src="{{ $item->produk ? asset('storage/' . $item->produk->foto) : 'https://via.placeholder.com/60' }}" alt="{{ $item->nama_barang }}" class="item-image w-12 h-12 object-cover rounded-lg shrink-0 shadow-sm">
+                                        <div class="flex-1 min-w-0">
+                                            <div class="item-name font-semibold text-base mb-1">{{ $item->produk ? $item->produk->nama : $item->nama_barang }}</div>
+                                            <div class="item-meta text-sm space-x-3">
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100">
+                                                    {{ $item->jumlah }}x
+                                                </span>
+                                                <span class="font-semibold text-green-600 dark:text-green-400">
+                                                    Rp {{ number_format($item->harga, 0, ',', '.') }}
+                                                </span>
+                                                @if(!empty($item->toppings) && is_array($item->toppings))
+                                                <div class="mt-2">
+                                                    <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">Toppings:</span>
+                                                    @php $names = \App\Models\Topping::whereIn('id', $item->toppings)->pluck('name')->toArray(); @endphp
+                                                    <div class="flex flex-wrap gap-1 mt-1">
+                                                        @foreach($names as $topping)
+                                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100">
+                                                                {{ $topping }}
+                                                            </span>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                                @endif
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="item-review col-span-2 text-sm">
-                                        @if($item->review)
-                                        <div class="item-review-stars text-yellow-500 text-sm mb-1">
-                                            {{ str_repeat('⭐', $item->review->rating) }}
-                                            <span class="text-xs ml-1">({{ $item->review->rating }}/5)</span>
-                                        </div>
-                                        <div class="item-review-text italic text-xs truncate max-w-full">
-                                            "{{ $item->review->review_text ?? 'Tidak ada teks ulasan' }}"
-                                        </div>
-                                        @else
-                                        <div class="item-review-none italic text-xs">
-                                            (Belum direview)
-                                        </div>
-                                        @endif
                                     </div>
                                 </div>
                                 @endforeach
@@ -168,25 +177,41 @@
                                 {{-- Action Button Sederhana --}}
                                 <div class="card-actions-compact flex gap-2 items-center">
                                     
-                                    {{-- Tombol Aksi Status Otomatis --}}
-                                    @if ($trx->status === 'pending')
-                                        {{-- Tombol Kirim Pesanan (Konfirmasi) --}}
-                                        <form method="POST" action="{{ route('admin.transactions.konfirmasi', $trx->id) }}" class="confirm-form-compact">
-                                            @csrf
-                                            <button type="submit" class="action-btn px-3 py-1 text-sm rounded-md bg-green-600 text-white hover:bg-green-700 transition">
-                                                Kirim Pesanan
-                                            </button>
-                                        </form>
-                                    @elseif ($trx->status === 'dikirim')
-                                        {{-- Tombol Selesaikan Pesanan --}}
-                                        <form method="POST" action="{{ route('admin.transactions.complete', $trx->id) }}" class="confirm-form-compact">
-                                            @csrf
-                                            <button type="submit" class="action-btn px-3 py-1 text-sm rounded-md bg-purple-600 text-white hover:bg-purple-700 transition">
-                                                Selesaikan Pesanan
-                                            </button>
-                                        </form>
+                                    @if(config('fitur.order_preparation'))
+                                        {{-- Tombol Aksi Status Otomatis --}}
+                                        @if ($trx->status === 'pending')
+                                            {{-- Tombol Kirim Pesanan (Konfirmasi) --}}
+                                            <form method="POST" action="{{ route('admin.transactions.konfirmasi', $trx->id) }}" class="confirm-form-compact">
+                                                @csrf
+                                                <button type="submit" class="action-btn px-3 py-1 text-sm rounded-md bg-green-600 text-white hover:bg-green-700 transition">
+                                                    Kirim Pesanan
+                                                </button>
+                                            </form>
+                                        @elseif ($trx->status === 'paid')
+                                            {{-- Info Pembayaran Otomatis --}}
+                                            <div class="flex items-center gap-2">
+                                                <span class="px-3 py-1 text-sm rounded-md bg-blue-100 text-blue-800 font-medium">
+                                                    ✅ Terbayar Otomatis
+                                                </span>
+                                                <form method="POST" action="{{ route('admin.transactions.konfirmasi', $trx->id) }}" class="confirm-form-compact">
+                                                    @csrf
+                                                    <button type="submit" class="action-btn px-3 py-1 text-sm rounded-md bg-green-600 text-white hover:bg-green-700 transition">
+                                                        Konfirmasi Pengiriman
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        @elseif ($trx->status === 'dikirim')
+                                            {{-- Tombol Selesaikan Pesanan --}}
+                                            <form method="POST" action="{{ route('admin.transactions.complete', $trx->id) }}" class="confirm-form-compact">
+                                                @csrf
+                                                <button type="submit" class="action-btn px-3 py-1 text-sm rounded-md bg-purple-600 text-white hover:bg-purple-700 transition">
+                                                    Selesaikan Pesanan
+                                                </button>
+                                            </form>
+                                        @endif
                                     @endif
 
+                                    @if(config('fitur.admin_message'))
                                     {{-- Tombol Modal Pesan (Selalu ada di samping) --}}
                                     <button 
                                         @click="
@@ -198,6 +223,7 @@
                                         class="action-btn px-3 py-1 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 transition">
                                         Tambahkan Pesan
                                     </button>
+                                    @endif
                                 </div>
                             </div>
                             
@@ -222,14 +248,15 @@
             </div>
             @empty
             <div class="empty-state text-center p-12 rounded-xl shadow-lg">
-                <div class="empty-icon text-5xl mb-4">📭</div>
-                <h3 class="text-xl font-bold">No Transactions Found</h3>
-                <p>There are no transactions to display at the moment.</p>
+                <div class="empty-icon text-5xl mb-4">☕</div>
+                <h3 class="text-xl font-bold">Belum Ada Pesanan</h3>
+                <p>Belum ada pesanan coffee yang masuk saat ini.</p>
             </div>
             @endforelse
         </div>
     </div>
     
+    @if(config('fitur.admin_message'))
     {{-- ================================================
     ⭐️ MODAL KELOLA STATUS & PESAN ⭐️
     ================================================ --}}
@@ -255,6 +282,7 @@
                         <select name="status" id="modal_status" x-model="currentStatus" required
                             class="modal-select mt-1 block w-full pl-3 pr-10 py-2 text-base rounded-md">
                             <option value="pending">Pending</option>
+                            <option value="paid">Paid</option>
                             <option value="dikirim">Dikirim</option>
                             <option value="selesai">Selesai</option>
                             <option value="dibatalkan">Dibatalkan</option>
@@ -284,6 +312,7 @@
             </form>
         </div>
     </div>
+    @endif
 </div>
 @endsection
 
@@ -378,19 +407,81 @@
             });
         });
 
-        // Memperbaiki Konfirmasi Form agar menampilkan loading state
+        // Handle konfirmasi/complete via AJAX with SweetAlert feedback
         const confirmFormsCompact = document.querySelectorAll('.confirm-form-compact');
+        const csrfTokenMeta = document.querySelector('meta[name="csrf-token"]');
+        const csrfToken = csrfTokenMeta ? csrfTokenMeta.getAttribute('content') : null;
+
         confirmFormsCompact.forEach(form => {
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 const submitBtn = this.querySelector('button[type="submit"]');
-                
-                submitBtn.innerHTML = 'Processing... ⏳'; 
-                submitBtn.disabled = true;
+                const actionUrl = this.action;
+                const isKonfirmasi = actionUrl.includes('/konfirmasi');
+                const confirmText = isKonfirmasi ? 'Yakin ingin konfirmasi pengiriman pesanan ini?' : 'Yakin ingin menandai pesanan ini selesai?';
 
-                setTimeout(() => {
-                    this.submit(); 
-                }, 500); 
+                Swal.fire({
+                    title: isKonfirmasi ? 'Konfirmasi Pesanan' : 'Selesaikan Pesanan',
+                    text: confirmText,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true
+                }).then(result => {
+                    if (!result.isConfirmed) return;
+
+                    submitBtn.disabled = true;
+                    submitBtn.innerText = 'Processing... ⏳';
+
+                    // Send POST as form data so middleware CSRF still valid
+                    const formData = new FormData(this);
+
+                    fetch(actionUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    })
+                    .then(async (res) => {
+                        const json = await res.json().catch(() => ({}));
+                        if (res.ok) {
+                            Swal.fire({ icon: 'success', title: json.message || 'Berhasil', toast: true, position: 'top-end', showConfirmButton: false, timer: 2500 });
+
+                            // Update UI: change badge and remove/replace action button
+                            const card = this.closest('.transaction-card');
+                            if (card) {
+                                const newStatus = json.status || (isKonfirmasi ? 'dikirim' : 'selesai');
+                                card.dataset.status = newStatus;
+                                const badge = card.querySelector('.status-badge');
+                                if (badge) {
+                                    badge.className = 'status-badge status-' + newStatus + ' px-2 py-1 rounded-full text-xs font-semibold';
+                                    let icon = '';
+                                    if (newStatus === 'pending') icon = '⏳ ';
+                                    if (newStatus === 'paid') icon = '💳 ';
+                                    if (newStatus === 'dikirim') icon = '🚚 ';
+                                    if (newStatus === 'selesai') icon = '✅ ';
+                                    badge.innerHTML = icon + newStatus.toUpperCase();
+                                }
+
+                                // Remove the form so admin won't double-click; optionally you could replace with next action
+                                this.remove();
+                            }
+                        } else {
+                            Swal.fire({ icon: 'error', title: json.message || 'Gagal', text: json.message || 'Terjadi kesalahan', toast: true, position: 'top-end', showConfirmButton: false, timer: 4000 });
+                            submitBtn.disabled = false;
+                            submitBtn.innerText = isKonfirmasi ? 'Kirim Pesanan' : 'Selesaikan Pesanan';
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        Swal.fire({ icon: 'error', title: 'Gagal', text: 'Terjadi kesalahan pada server', toast: true, position: 'top-end', showConfirmButton: false, timer: 4000 });
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = isKonfirmasi ? 'Kirim Pesanan' : 'Selesaikan Pesanan';
+                    });
+                });
             });
         });
 
@@ -662,14 +753,8 @@
         transition: color 0.3s ease;
     }
 
-    #transactionContainer .item-meta,
-    #transactionContainer .item-review-none {
+    #transactionContainer .item-meta {
         color: var(--text-secondary);
-        transition: color 0.3s ease;
-    }
-
-    #transactionContainer .item-review-text {
-        color: var(--text-primary);
         transition: color 0.3s ease;
     }
 
@@ -838,6 +923,16 @@
     #transactionContainer .status-selesai { 
         background: var(--status-complete-bg); 
         color: var(--status-complete-text); 
+    }
+    
+    #transactionContainer .status-paid { 
+        background: #059669; 
+        color: #ffffff; 
+    }
+    
+    #transactionContainer .status-dibatalkan { 
+        background: #dc2626; 
+        color: #ffffff; 
     }
     
     /* Responsive Overrides */

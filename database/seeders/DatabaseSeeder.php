@@ -13,20 +13,28 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Admin',
-            'email' => 'admin@admin.com',
-            'role' => 'admin', // Make sure you have this column in users table
-            'password' => bcrypt('password'), // Set a default password
+        // Seed categories, toppings, and products
+        $this->call([
+            KategoriSeeder::class,
+            ToppingSeeder::class,
+            ProdukSeeder::class,
+            InventorySeeder::class,
         ]);
 
+        // Create admin user
         User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'name' => 'Admin Coffee Shop',
+            'email' => 'admin@coffeeshop.com',
+            'role' => 'admin',
+            'password' => bcrypt('admin123'),
+        ]);
+
+        // Create sample customer
+        User::factory()->create([
+            'name' => 'Customer',
+            'email' => 'customer@coffeeshop.com',
             'role' => 'user',
-            'password' => bcrypt('12345678'), // Set a default password
+            'password' => bcrypt('customer123'),
         ]);
     }
 }

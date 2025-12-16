@@ -13,6 +13,11 @@ class TransactionItem extends Model
         'nama_barang',
         'jumlah',
         'harga',
+        'toppings', // JSON payload of selected toppings
+    ];
+
+    protected $casts = [
+        'toppings' => 'array',
     ];
 
     public function transaction()

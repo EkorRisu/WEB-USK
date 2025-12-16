@@ -1,11 +1,11 @@
 @extends('layouts.user') {{-- Pastikan ini sesuai dengan layout user Anda --}}
 
 @section('content')
-<div class="bg-gray-900 shadow-2xl p-6 md:p-10 max-w-7xl mx-auto my-8 rounded-xl border border-gray-700">
+<div class="bg-yellow-50 dark:bg-gray-900 shadow-2xl p-6 md:p-10 max-w-7xl mx-auto my-8 rounded-xl border border-yellow-200 dark:border-gray-700">
     
-    <div class="header-section mb-8 border-b border-gray-700 pb-4">
-        <h1 class="text-2xl md:text-3xl font-extrabold text-white mb-2">❤️ Wishlist Saya</h1>
-        <p class="text-gray-400">Semua produk yang Anda simpan untuk nanti.</p>
+    <div class="header-section mb-8 border-b border-yellow-200 dark:border-gray-700 pb-4">
+        <h1 class="text-2xl md:text-3xl font-extrabold text-yellow-900 dark:text-yellow-100 mb-2">☕ Menu Favorit Saya</h1>
+        <p class="text-yellow-700 dark:text-yellow-300">Semua menu kopi yang Anda simpan untuk nanti.</p>
     </div>
 
     <div class="mb-6">
